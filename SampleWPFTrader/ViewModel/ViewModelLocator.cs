@@ -1,5 +1,4 @@
 using GalaSoft.MvvmLight.Ioc;
-using Microsoft.Practices.ServiceLocation;
 
 namespace SampleWPFTrader.ViewModel
 {
@@ -10,7 +9,7 @@ namespace SampleWPFTrader.ViewModel
         /// </summary>
         public ViewModelLocator()
         {
-            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
+            CommonServiceLocator.ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
             ////if (ViewModelBase.IsInDesignModeStatic)
             ////{
@@ -30,7 +29,7 @@ namespace SampleWPFTrader.ViewModel
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<MainViewModel>();
+                return CommonServiceLocator.ServiceLocator.Current.GetInstance<MainViewModel>();
             }
         }
         
