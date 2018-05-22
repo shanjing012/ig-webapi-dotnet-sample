@@ -7,7 +7,7 @@
         xmlns:command="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
 
-        Title="IG WPF Trader version 0.5" Height="800" Width="1280" WindowState="Maximized">
+        Title="IG WPF Trader version 0.5" Height="800" Width="1280">
     <Window.Resources>
         <viewModel:ApplicationViewModel x:Key="avm" />
         <viewModel:PositionsViewModel x:Key="pvm" />
@@ -38,7 +38,7 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TabControl Grid.Row="0" Margin="10,10,10,260.4" HorizontalContentAlignment="Stretch" Grid.RowSpan="2" SelectionChanged="TabControl_SelectionChanged">
+            <TabControl Grid.Row="0" Margin="22,30,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" Height="524" Width="1240" Grid.RowSpan="2">
                 <TabControl.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>
@@ -284,8 +284,6 @@
                                 <DataGridTextColumn Header="% Change" Binding="{Binding Path=Model.PctChange}"/>
                                 <DataGridTextColumn Header="Streaming allowed" Binding="{Binding Path=Model.StreamingPricesAvailable}" />
                                 <DataGridTextColumn Header="Market Status" Binding="{Binding Path=Model.MarketStatus}" />
-                                
-
                             </DataGrid.Columns>
                         </DataGrid>
 
@@ -297,8 +295,8 @@
 
             </TabControl>
 
-            <ScrollViewer Name="StatusBarScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" RenderTransformOrigin="0.5,0.5" Margin="10,187,10,10" Grid.Row="1" TextOptions.TextFormattingMode="Display" CanContentScroll="True">
-                <TextBlock x:Name="StatusBarTextBox" Background="WhiteSmoke" Foreground="Black" Grid.Row="1" DataContext="{Binding Source={StaticResource avm}}" Text="{Binding ApplicationDebugData}" TextOptions.TextFormattingMode="Display" RenderTransformOrigin="0.5,0.5" UseLayoutRounding="False" />
+            <ScrollViewer Name="StatusBarScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" RenderTransformOrigin="0.504,5.394" Margin="24,187,10,10" Grid.Row="1" TextOptions.TextFormattingMode="Display" CanContentScroll="True">
+                <TextBlock x:Name="StatusBarTextBox" Background="WhiteSmoke" Foreground="Black" Grid.Row="1" DataContext="{Binding Source={StaticResource avm}}" Text="{Binding ApplicationDebugData}" TextOptions.TextFormattingMode="Display" RenderTransformOrigin="0.5,1.444" />
             </ScrollViewer>
 
             <!-- 
