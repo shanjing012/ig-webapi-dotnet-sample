@@ -78,6 +78,8 @@ namespace SampleWPFTrader.ViewModel
 		{
 			try
 			{
+                 
+
 				var wlmUpdate = e.UpdateData;
 
 				var epic = e.ItemName.Replace("L1:", "");
@@ -234,6 +236,7 @@ namespace SampleWPFTrader.ViewModel
 					foreach (var market in response.Response.markets.Where(m => m != null).Select(LoadMarket))
 					{
 						BrowseMarkets.Add(market);
+                        //add
 						AddStatusMessage(String.Format("Browse Market found: {0} epic:{1}", market.Model.InstrumentName, market.Model.Epic));
 					}
 

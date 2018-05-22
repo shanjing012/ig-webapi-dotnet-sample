@@ -27,5 +27,10 @@ namespace SampleWPFTrader
         {
 
         }
+
+        private void InitializeDropDownBox(object sender, EventArgs e)
+        {
+            //fsdf
+        }
     }
 }
