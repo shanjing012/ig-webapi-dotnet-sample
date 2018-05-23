@@ -106,7 +106,7 @@
                         </DockPanel>
 
                         <DockPanel Grid.Row="1" Margin="815,53,0,10" Grid.Column="2" Grid.RowSpan="2" RenderTransformOrigin="0.345,0.492" >
-                            <DataGrid VerticalAlignment="Top" ItemsSource="{Binding Path=AffectedDeals}" AutoGenerateColumns="False" Margin="10" SelectionChanged="DataGrid_SelectionChanged" IsReadOnly="True">
+                            <DataGrid VerticalAlignment="Top" ItemsSource="{Binding Path=AffectedDeals}" AutoGenerateColumns="False" Margin="10" IsReadOnly="True">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="affected deal id" Binding="{Binding Path=AffectedDealId}"/>
                                     <DataGridTextColumn Header="affected deal status" Binding="{Binding Path=AffectedDealStatus}"/>
