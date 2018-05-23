@@ -55,14 +55,34 @@ namespace SampleWPFTrader.ViewModel
 			}
 		}
 
-		public BrowseViewModel()
+        public void GetGraphTab()
+        {
+            //var window = new GraphWindow();
+            //window.Show();
+        }
+
+        private string selectedEpic;
+        public string SelectedEpic
+        {
+            get
+            {
+                return selectedEpic;
+            }
+            set
+            {
+                selectedEpic = value;
+            }
+        }
+
+        public BrowseViewModel()
 		{
 			InitialiseViewModel();
 
 			BrowseNodes = new ObservableCollection<HierarchyNode>();
 			BrowseMarkets = new ObservableCollection<IgPublicApiData.BrowseModel>();
-
-			NodeIndex = 0;
+            ComboBoxMarkets = new ObservableCollection<String>();
+    
+            NodeIndex = 0;
 
 			// Initialise LS subscriptions            
 			_l1BrowsePricesSubscription = new MarketDetailsTableListerner();
@@ -109,11 +129,14 @@ namespace SampleWPFTrader.ViewModel
 		{
 			GetBrowseMarketsCommand = new RelayCommand(GetBrowseMarkets);
 			GetBrowseRootCommand = new RelayCommand(GetBrowseMarketsRoot);
-			GetBrowseMarketsCommand.IsEnabled = false;
+            GetGraphCommand = new RelayCommand(GetGraphTab);
+            GetBrowseMarketsCommand.IsEnabled = false;
 			GetBrowseRootCommand.IsEnabled = true;
-		}
+            GetGraphCommand.IsEnabled = true;
 
-		private HierarchyNode _selectedItem;
+        }
+
+        private HierarchyNode _selectedItem;
 		public HierarchyNode SelectedItem
 		{
 			get { return _selectedItem; }
@@ -139,11 +162,19 @@ namespace SampleWPFTrader.ViewModel
 			private set;
 		}
 
-		public ObservableCollection<HierarchyNode> BrowseNodes { get; set; }
+        public RelayCommand GetGraphCommand
+        {
+            get;
+            private set;
+        }
+
+        public ObservableCollection<HierarchyNode> BrowseNodes { get; set; }
 
 		public ObservableCollection<IgPublicApiData.BrowseModel> BrowseMarkets { get; set; }
 
-		private int _nodeIndex;
+        public ObservableCollection<String> ComboBoxMarkets { get; set; }
+
+        private int _nodeIndex;
 		public int NodeIndex
 		{
 			get { return _nodeIndex; }
@@ -232,12 +263,15 @@ namespace SampleWPFTrader.ViewModel
 						return;
 					}
 					BrowseMarkets.Clear();
+                    ComboBoxMarkets.Clear();
 
-					foreach (var market in response.Response.markets.Where(m => m != null).Select(LoadMarket))
+
+                    foreach (var market in response.Response.markets.Where(m => m != null).Select(LoadMarket))
 					{
 						BrowseMarkets.Add(market);
+                        ComboBoxMarkets.Add(market.Model.Epic);
                         //add
-						AddStatusMessage(String.Format("Browse Market found: {0} epic:{1}", market.Model.InstrumentName, market.Model.Epic));
+                        AddStatusMessage(String.Format("Browse Market found: {0} epic:{1}", market.Model.InstrumentName, market.Model.Epic));
 					}
 
 					//

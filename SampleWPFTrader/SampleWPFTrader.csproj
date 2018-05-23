@@ -101,6 +101,9 @@
     <Compile Include="Common\PropertyChanged.cs" />
     <Compile Include="Common\SmartDispatcher.cs" />
     <Compile Include="Converters\BoolToVisibility.cs" />
+    <Compile Include="GraphWindow.xaml.cs">
+      <DependentUpon>GraphWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ICommand.cs" />
     <Compile Include="Model\IgPublicApiData.cs" />
     <Compile Include="ViewModel\ApplicationViewModel.cs" />
@@ -111,6 +114,10 @@
     <Compile Include="ViewModel\PositionsViewModel.cs" />
     <Compile Include="ViewModel\ViewModelBase.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
+    <Page Include="GraphWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

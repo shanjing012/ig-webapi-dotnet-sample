@@ -290,9 +290,8 @@
                         <Button Grid.Row="2" Margin="10,52,178,118" Grid.Column="0" Width="120" Command="{Binding GetBrowseRootCommand}" Content="Root"  IsEnabled="True" DataContext="{Binding Source={StaticResource bvm}}" />
                         <Button Grid.Row="2" Margin="160,52,28,118" Width="120" Command="{Binding GetBrowseMarketsCommand}" Content="Drill down"  IsEnabled="True" DataContext="{Binding Source={StaticResource bvm}}" />
 
-                        <ComboBox Margin="97,29,276.6,241" Grid.Column="1" />
-                        <TextBox Margin="264,29,225.6,241" Grid.Column="1">0</TextBox>
-                        <Button Grid.Column="1" Margin="322,29,151.6,241" Content="Purchase"/>
+                        <ComboBox Margin="10,39,329.6,241" Grid.Column="1" ItemsSource="{Binding Path=ComboBoxMarkets}" SelectedItem="{Binding Path=SelectedEpic}" Height="20" Width="190"/>
+                        <Button Grid.Column="1" Margin="239,39,240.6,241" Content="Graph" Height="20" Width="50" Command="{Binding GetGraphCommand}"/>
 
                     </Grid>
                 </TabItem>
