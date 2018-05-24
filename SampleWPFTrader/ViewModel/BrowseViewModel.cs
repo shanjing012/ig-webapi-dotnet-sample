@@ -57,8 +57,8 @@ namespace SampleWPFTrader.ViewModel
 
         public void GetGraphTab()
         {
-            //var window = new GraphWindow();
-            //window.Show();
+            var window = new GraphWindow(selectedEpic);
+            window.Show();
         }
 
         private string selectedEpic;
