@@ -24,7 +24,7 @@ namespace SampleWPFTrader
         public GraphWindow(string s)
         {
             InitializeComponent();
-            Title = s;
+            //Title = s;
         }
     }
 }

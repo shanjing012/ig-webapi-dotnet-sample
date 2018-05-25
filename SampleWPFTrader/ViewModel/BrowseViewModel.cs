@@ -55,12 +55,6 @@ namespace SampleWPFTrader.ViewModel
 			}
 		}
 
-        public void GetGraphTab()
-        {
-            var window = new GraphWindow(selectedEpic);
-            window.Show();
-        }
-
         private string selectedEpic;
         public string SelectedEpic
         {
@@ -129,11 +123,8 @@ namespace SampleWPFTrader.ViewModel
 		{
 			GetBrowseMarketsCommand = new RelayCommand(GetBrowseMarkets);
 			GetBrowseRootCommand = new RelayCommand(GetBrowseMarketsRoot);
-            GetGraphCommand = new RelayCommand(GetGraphTab);
             GetBrowseMarketsCommand.IsEnabled = false;
 			GetBrowseRootCommand.IsEnabled = true;
-            GetGraphCommand.IsEnabled = true;
-
         }
 
         private HierarchyNode _selectedItem;
@@ -161,12 +152,6 @@ namespace SampleWPFTrader.ViewModel
 			get;
 			private set;
 		}
-
-        public RelayCommand GetGraphCommand
-        {
-            get;
-            private set;
-        }
 
         public ObservableCollection<HierarchyNode> BrowseNodes { get; set; }
 
@@ -355,7 +340,9 @@ namespace SampleWPFTrader.ViewModel
 			{
 				AddStatusMessage(ex.Message);
 			}
-		}        
+		}
+        
+
 	}
 
 }
