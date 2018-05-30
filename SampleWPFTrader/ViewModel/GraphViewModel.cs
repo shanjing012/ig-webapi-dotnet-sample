@@ -13,11 +13,9 @@ namespace SampleWPFTrader.ViewModel
 {
     public class GraphViewModel : ViewModelBase
     {
-        public ObservableCollection<IgPublicApiData.ChartModel> ChartMarketData { get; set; }
-
         // LS subscriptions...
-        private MarketDetailsTableListerner _l1GraphPricesSubscription;
-        private SubscribedTableKey _graphSubscriptionTableKey;
+        private SubscribedTableKey _chartSubscribedTableKey;
+        private ChartCandleTableListerner _chartSubscription;
 
         private bool _graphTabSelected;
         public bool GraphTabSelected
@@ -56,33 +54,9 @@ namespace SampleWPFTrader.ViewModel
             else
             {
                 AddStatusMessage("Browse Tab de-selected");
-                UnsubscribeFromGraphPrices();
+                /*UnsubscribeFromGraphPrices();*/
             }
-        }
-
-        public void SubscribeToBrowsePrices(string[] epics)
-        {
-            try
-            {
-                // Subscribe to L1 price updates for the instruments contained in this browse node...
-                _graphSubscriptionTableKey = igStreamApiClient.SubscribeToMarketDetails(epics, _l1GraphPricesSubscription);
-                AddStatusMessage("Subscribed Successfully to instruments contained within this browse node.");
-            }
-            catch (Exception ex)
-            {
-                AddStatusMessage("Could not subscribe to browse instruments : " + ex.Message);
-            }
-        }
-
-        public void UnsubscribeFromGraphPrices()
-        {
-            if ((igStreamApiClient != null) && (_graphSubscriptionTableKey != null) && (LoggedIn))
-            {
-                igStreamApiClient.UnsubscribeTableKey(_graphSubscriptionTableKey);
-                _graphSubscriptionTableKey = null;
-                AddStatusMessage("Unsubscribed from Browse Node Prices");
-            }
-        }
+        }  
 
         //graph epic
         private string selectedEpic;
@@ -121,55 +95,31 @@ namespace SampleWPFTrader.ViewModel
             get;
             private set;
         }
+
+        public ObservableCollection<IgPublicApiData.ChartModel> ChartMarketData { get; set; }
+        public ObservableCollection<IgPublicApiData.ChartModel> ChartMarketHistoryData { get; set; }
         public ObservableCollection<String> ComboBoxMarkets { get; set; }
 
+        //initialization
         public GraphViewModel()
         {
             InitialiseViewModel();
+            ChartMarketData = new ObservableCollection<IgPublicApiData.ChartModel>();
+            ChartMarketHistoryData = new ObservableCollection<IgPublicApiData.ChartModel>();
             ComboBoxMarkets = new ObservableCollection<String>();
+            
+            _chartSubscribedTableKey = new SubscribedTableKey();
 
-            // Initialise LS subscriptions            
-            _l1GraphPricesSubscription = new MarketDetailsTableListerner();
-            //_l1GraphPricesSubscription.Update += OnMarketUpdate;
-            // initialise the LS SubscriptionTableKeys          
-            _graphSubscriptionTableKey = new SubscribedTableKey();
-            _graphSubscriptionTableKey = null;
+            _chartSubscription = new ChartCandleTableListerner();
+            _chartSubscription.Update += OnChartCandleDataUpdate;
 
             WireCommands();
         }
 
-        //some update
-        /*private void OnMarketUpdate(object sender, UpdateArgs<L1LsPriceData> e)
-        {
-            try
-            {
 
+        
 
-                var wlmUpdate = e.UpdateData;
-
-                var epic = e.ItemName.Replace("L1:", "");
-
-                foreach (var browseModel in BrowseMarkets.Where(watchlistItem => watchlistItem.Model.Epic == epic))
-                {
-                    browseModel.Model.Epic = epic;
-                    browseModel.Model.Bid = wlmUpdate.Bid;
-                    browseModel.Model.Offer = wlmUpdate.Offer;
-                    browseModel.Model.NetChange = wlmUpdate.Change;
-                    browseModel.Model.PctChange = wlmUpdate.ChangePct;
-                    browseModel.Model.Low = wlmUpdate.Low;
-                    browseModel.Model.High = wlmUpdate.High;
-                    browseModel.Model.Open = wlmUpdate.MidOpen;
-                    browseModel.Model.UpdateTime = wlmUpdate.UpdateTime;
-                    browseModel.Model.MarketStatus = wlmUpdate.MarketState;
-                }
-            }
-
-            catch (Exception ex)
-            {
-                AddStatusMessage(ex.Message);
-            }
-        }*/
-
+        //wire button commands
         private void WireCommands()
         {
             SearchEpicCommand = new RelayCommand(SearchEpic);
@@ -220,9 +170,120 @@ namespace SampleWPFTrader.ViewModel
 
         public void SelectEpic()
         {
-            //SubscribeToBrowsePrices(selectedEpic);
+            try
+            {
+                if (LoggedIn && selectedEpic != "")
+                {
+                    //add selectedepic to the epic string
+                    string[] epic = new string[] { selectedEpic };
+                    SubscribeToCharts(epic);
+                }
+                else
+                {
+                    AddStatusMessage("Please log in first/Invalid Search query");
+                }
+            }
+            catch (Exception ex)
+            {
+                AddStatusMessage(ex.Message);
+            }
         }
 
+        private void SubscribeToCharts(string[] chartEpics)
+        {
+            try
+            {
+                if (igStreamApiClient != null)
+                {
+                    ChartMarketData.Clear();
+                    foreach (var epic in chartEpics)
+                    {
+                        IgPublicApiData.ChartModel ccd = new IgPublicApiData.ChartModel();
+                        ccd.ChartEpic = epic;
+                        ChartMarketData.Add(ccd);
 
+                        AddStatusMessage("Subscribing to Chart Data (CandleStick ): " + ccd.ChartEpic);
+                    }
+
+                    _chartSubscribedTableKey = igStreamApiClient.SubscribeToChartCandleData(chartEpics, ChartScale.OneSecond, _chartSubscription);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                AddStatusMessage("Exception when trying to subscribe to Chart Candle Data: " + ex.Message);
+            }
+        }
+
+        private void UnsubscribeFromCharts()
+        {
+            if ((igStreamApiClient != null) && (_chartSubscribedTableKey != null) && (LoggedIn))
+            {
+                igStreamApiClient.UnsubscribeTableKey(_chartSubscribedTableKey);
+                _chartSubscribedTableKey = null;
+
+                AddStatusMessage("GraphViewModel : Unsubscribing from candle data from charts");
+            }
+        }
+
+        //update of candle chart data
+        private void OnChartCandleDataUpdate(object sender, UpdateArgs<ChartCandelData> e)
+        {
+            var candleUpdate = e.UpdateData;
+
+            var tempEpic = e.ItemName.Replace("CHART:", "");
+            var tempArray = tempEpic.Split(':');
+            var epic = tempArray[0];
+            var time = tempArray[1]; //update time here?
+
+            foreach (var candleData in ChartMarketData.Where(chartItem => chartItem.ChartEpic == epic))
+            {
+                if (!candleData.UpdateTime.Equals(candleUpdate.UpdateTime))
+                {
+                    UpdateChartHistory(candleData);
+                    candleData.UpdateTime = candleUpdate.UpdateTime;
+
+                }
+
+                candleData.Bid = new IgPublicApiData.ChartHlocModel();
+                candleData.Bid.Close = candleUpdate.Bid.Close;
+                candleData.Bid.High = candleUpdate.Bid.High;
+                candleData.Bid.Low = candleUpdate.Bid.Low;
+                candleData.Bid.Open = candleUpdate.Bid.Open;
+
+                candleData.DayChange = candleUpdate.DayChange;
+                candleData.DayChangePct = candleUpdate.DayChangePct;
+                candleData.DayHigh = candleUpdate.DayHigh;
+                candleData.DayLow = candleUpdate.DayLow;
+                candleData.DayMidOpenPrice = candleUpdate.DayMidOpenPrice;
+                candleData.EndOfConsolidation = candleUpdate.EndOfConsolidation;
+                candleData.IncrimetalTradingVolume = candleUpdate.IncrimetalTradingVolume;
+
+                if (candleUpdate.LastTradedVolume != null)
+                {
+                    candleData.LastTradedVolume = candleUpdate.LastTradedVolume;
+                    candleData.LastTradedPrice = new IgPublicApiData.ChartHlocModel();
+                    candleData.LastTradedPrice.Close = candleUpdate.LastTradedPrice.Close;
+                    candleData.LastTradedPrice.High = candleUpdate.LastTradedPrice.High;
+                    candleData.LastTradedPrice.Low = candleUpdate.LastTradedPrice.Low;
+                    candleData.LastTradedPrice.Open = candleUpdate.LastTradedPrice.Open;
+                }
+
+                candleData.Offer = new IgPublicApiData.ChartHlocModel();
+                candleData.Offer.Close = candleUpdate.Offer.Close;
+                candleData.Offer.Open = candleUpdate.Offer.Open;
+                candleData.Offer.High = candleUpdate.Offer.High;
+                candleData.Offer.Low = candleUpdate.Offer.Low;
+
+                candleData.TickCount = candleUpdate.TickCount;
+
+            }
+        }
+
+        //todo
+        private void UpdateChartHistory(IgPublicApiData.ChartModel candleData)
+        {
+            
+        }
     }
 }

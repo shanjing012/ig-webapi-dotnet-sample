@@ -498,7 +498,7 @@ namespace SampleWPFTrader.ViewModel
                         AddStatusMessage("Subscribing to Chart Data (CandleStick ): " + ccd.ChartEpic);
                     }
 
-                    _chartSubscribedTableKey = igStreamApiClient.SubscribeToChartCandleData( chartEpics, ChartScale.OneMinute, _chartSubscription);
+                    _chartSubscribedTableKey = igStreamApiClient.SubscribeToChartCandleData( chartEpics, ChartScale.FiveMinute, _chartSubscription);
                    
                 }
             }

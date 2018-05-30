@@ -299,7 +299,7 @@
                         </Grid.ColumnDefinitions>
 
 
-                        <Grid>
+                        <Grid Grid.Row="0" Grid.Column="0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="1*"/>
                                 <RowDefinition Height="1*"/>
@@ -315,17 +315,57 @@
                             <ComboBox Grid.Row="1" Grid.Column="0" Padding="4" ItemsSource="{Binding Path=ComboBoxMarkets}" SelectedItem="{Binding SelectedEpic}" Margin="5" FontSize="14"/>
                             <Button Grid.Row="1" Grid.Column="1" Content="Select" Height="30" Width="100" Command="{Binding SelectEpicCommand}" HorizontalAlignment="Left"/>
                         </Grid>
-                        
-                        <DataGrid Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=Col1}" AutoGenerateColumns="False" IsReadOnly="True">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Col1" Binding="{Binding Path=Col1}"/>
-                                <DataGridTextColumn Header="Col2" Binding="{Binding Path=Col2}"/>
-                                <DataGridTextColumn Header="Col3" Binding="{Binding Path=Col3}"/>
-                                <DataGridTextColumn Header="Col4" Binding="{Binding Path=Col4}"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
 
+                        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <DataGrid Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketData}" AutoGenerateColumns="False" IsReadOnly="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Instrument Name" Binding="{Binding ChartEpic}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="UpdateTime" Binding="{Binding UpdateTime}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Bid Open" Binding="{Binding Bid.Open}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Bid Close" Binding="{Binding Bid.Close}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Bid High" Binding="{Binding Bid.High}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Bid Low" Binding="{Binding Bid.Low}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Offer Open" Binding="{Binding Offer.Open}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Offer Close" Binding="{Binding Offer.Close}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Offer High" Binding="{Binding Offer.High}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Offer Low" Binding="{Binding Offer.Low}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Tick Count" Binding="{Binding TickCount}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day Change %" Binding="{Binding DayChangePct}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day Change" Binding="{Binding DayChange}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day High" Binding="{Binding DayHigh}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day Low" Binding="{Binding DayLow}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day Mid OpenPrice" Binding="{Binding DayMidOpenPrice}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Last Traded Volume" Binding="{Binding LastTradedVolume}"></DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
 
+                            <DataGrid Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketHistoryData}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Instrument Name" Binding="{Binding ChartEpic}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="UpdateTime" Binding="{Binding UpdateTime}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Bid Open" Binding="{Binding Bid.Open}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Bid Close" Binding="{Binding Bid.Close}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Bid High" Binding="{Binding Bid.High}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Bid Low" Binding="{Binding Bid.Low}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Offer Open" Binding="{Binding Offer.Open}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Offer Close" Binding="{Binding Offer.Close}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Offer High" Binding="{Binding Offer.High}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Offer Low" Binding="{Binding Offer.Low}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Tick Count" Binding="{Binding TickCount}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day Change %" Binding="{Binding DayChangePct}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day Change" Binding="{Binding DayChange}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day High" Binding="{Binding DayHigh}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day Low" Binding="{Binding DayLow}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Day Mid OpenPrice" Binding="{Binding DayMidOpenPrice}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Last Traded Volume" Binding="{Binding LastTradedVolume}"></DataGridTextColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
                     </Grid>
                 </TabItem>
             </TabControl>
