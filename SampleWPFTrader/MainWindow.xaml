@@ -316,13 +316,23 @@
                             <Button Grid.Row="1" Grid.Column="1" Content="Select" Height="30" Width="100" Command="{Binding SelectEpicCommand}" HorizontalAlignment="Left"/>
                         </Grid>
 
+                        <Grid Grid.Row="0" Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+
+                            <Button Grid.Row="0" Content="Buy" Height="30" Width="100" HorizontalAlignment="Center" Command="{Binding OpenPositionCommand}"/>
+                            <Button Grid.Row="1" Content="Sell" Height="30" Width="100" HorizontalAlignment="Center" Command="{Binding ClosePositionCommand}"/>
+                        </Grid>
+                        
                         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            
-                            <DataGrid Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketData}" AutoGenerateColumns="False" IsReadOnly="True">
+
+                            <DataGrid Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketData}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Instrument Name" Binding="{Binding ChartEpic}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="UpdateTime" Binding="{Binding UpdateTime}"></DataGridTextColumn>
@@ -344,10 +354,10 @@
                                 </DataGrid.Columns>
                             </DataGrid>
 
-                            <DataGrid Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketHistoryData}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None">
+                            <DataGrid x:Name="chartHistory" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketDataView.View}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Instrument Name" Binding="{Binding ChartEpic}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="UpdateTime" Binding="{Binding UpdateTime}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="UpdateTime" Binding="{Binding UpdateTime}" SortDirection="Descending" ></DataGridTextColumn>
                                     <DataGridTextColumn Header="Bid Open" Binding="{Binding Bid.Open}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Bid Close" Binding="{Binding Bid.Close}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Bid High" Binding="{Binding Bid.High}"></DataGridTextColumn>
