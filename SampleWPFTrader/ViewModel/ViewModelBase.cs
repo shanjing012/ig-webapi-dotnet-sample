@@ -68,15 +68,19 @@ namespace SampleWPFTrader.ViewModel
         // Add a message to the status textbox
         public void AddStatusMessage(string message)
         {
-            UpdateDebugMessage(message);
+            //UpdateDebugMessage(message);
+            SmartDispatcher smartDispatcher = (SmartDispatcher)SmartDispatcher.getInstance();
+            //calls smartdispatcher to update debugdata in applicationviewmodel, cause this doesnt work for all vms
+            smartDispatcher.addEventMessage(message);
         }
 
-        private string _applicationDebugData;
+        private static string _applicationDebugData;
 
         public string ApplicationDebugData
         {
             get
             {
+                //doesnt update except only at application view model. why?
                 return _applicationDebugData;
             }
             set
@@ -92,7 +96,12 @@ namespace SampleWPFTrader.ViewModel
         {
             if (ApplicationDebugData != message)
             {
+                //may need to shorten applicationdebugdata
+                //maybe upon changing tabs
+                if (message.Contains("=="))
+                    ApplicationDebugData = "";
                 ApplicationDebugData = DateTime.UtcNow + ": " + message + Environment.NewLine + ApplicationDebugData;
+                RaisePropertyChanged("ApplicationDebugData");
             }
         }
 

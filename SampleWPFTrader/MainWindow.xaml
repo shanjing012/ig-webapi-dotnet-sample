@@ -289,8 +289,8 @@
                     <Grid DataContext="{Binding Source={StaticResource gvm}}" Margin="0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*"/>
-                            <RowDefinition Height="4*"/>
-                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="2*"/>
+                            <RowDefinition Height="3*"/>
                         </Grid.RowDefinitions>
 
                         <Grid.ColumnDefinitions>
@@ -329,7 +329,7 @@
                         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
                             <DataGrid Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketData}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
@@ -354,7 +354,7 @@
                                 </DataGrid.Columns>
                             </DataGrid>
 
-                            <DataGrid x:Name="chartHistory" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketDataView.View}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None">
+                            <DataGrid x:Name="chartHistory" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketDataView.View}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None" ScrollViewer.CanContentScroll="True">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Instrument Name" Binding="{Binding ChartEpic}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="UpdateTime" Binding="{Binding UpdateTime}" SortDirection="Descending" ></DataGridTextColumn>
@@ -375,6 +375,20 @@
                                     <DataGridTextColumn Header="Last Traded Volume" Binding="{Binding LastTradedVolume}"></DataGridTextColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
+                        </Grid>
+
+                        <Grid Grid.Row="2" Grid.Column="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="25"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Label FontWeight="Bold" Grid.Row="0">Positions</Label>
+
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding }" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None" ScrollViewer.CanContentScroll="True">
+                                    <!-- Positions of current account matching the epic displayed-->
+                                </DataGrid>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </TabItem>

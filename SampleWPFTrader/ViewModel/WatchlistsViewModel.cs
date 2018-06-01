@@ -442,7 +442,7 @@ namespace SampleWPFTrader.ViewModel
 
 		private static IgPublicApiData.WatchlistMarketModel LoadMarket(WatchlistMarket wl)
 		{
-			return new IgPublicApiData.WatchlistMarketModel
+            return new IgPublicApiData.WatchlistMarketModel
 			{
 				Model = new IgPublicApiData.InstrumentModel
 				{

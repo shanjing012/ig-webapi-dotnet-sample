@@ -91,9 +91,8 @@ namespace SampleWPFTrader.ViewModel
 		private void OnMarketUpdate(object sender, UpdateArgs<L1LsPriceData> e)
 		{
 			try
-			{
-                 
-
+			{ 
+                
 				var wlmUpdate = e.UpdateData;
 
 				var epic = e.ItemName.Replace("L1:", "");

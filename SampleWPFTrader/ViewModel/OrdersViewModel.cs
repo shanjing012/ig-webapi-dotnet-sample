@@ -37,7 +37,8 @@ namespace SampleWPFTrader.ViewModel
 
 		private void OnMarketUpdate(object sender, UpdateArgs<L1LsPriceData> e)
 		{
-			try
+            
+            try
 			{
 				//AddStatusMessage(e.UpdateData); 
 

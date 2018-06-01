@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using IGWebApiClient;
 using Lightstreamer.DotNet.Client;
-using SampleWPFTrader.Model;
-using dto.endpoint.search;
 using System.Windows.Data;
+using SampleWPFTrader.Model;
+using SampleWPFTrader.Common;
+using dto.endpoint.positions.create.otc.v2;
 
 namespace SampleWPFTrader.ViewModel
 {
@@ -41,12 +39,12 @@ namespace SampleWPFTrader.ViewModel
         {
             if (GraphTabSelected)
             {
-                AddStatusMessage("Graph Tab selected");
+                AddStatusMessage("== Graph Tab Selected ==");
                 // Get Rest Orders and then subscribe
                 if (LoggedIn)
                 {
                     //GetBrowseMarketsRoot();
-                    AddStatusMessage("Get browse root.");
+                    AddStatusMessage("Select some epic.");
                 }
                 else
                 {
@@ -55,10 +53,10 @@ namespace SampleWPFTrader.ViewModel
             }
             else
             {
-                AddStatusMessage("Browse Tab de-selected");
-                /*UnsubscribeFromGraphPrices();*/
+                AddStatusMessage("Graph Tab de-selected");
+                UnsubscribeFromCharts();
             }
-        }  
+        }
 
         //variables on the viewmodel
         private string selectedEpic;
@@ -112,6 +110,8 @@ namespace SampleWPFTrader.ViewModel
         //data containers for our information
         public ObservableCollection<IgPublicApiData.ChartModel> ChartMarketData { get; set; }
         public ObservableCollection<IgPublicApiData.ChartModel> ChartMarketHistoryData { get; set; }
+        public ObservableCollection<IgPublicApiData.PositionModel> PositionData { get; set; }
+
         public ObservableCollection<String> ComboBoxMarkets { get; set; }
         public CollectionViewSource ChartMarketDataView { get; set; }
 
@@ -170,11 +170,11 @@ namespace SampleWPFTrader.ViewModel
                             ComboBoxMarkets.Add(node.epic);
                         }
                         
-                        AddStatusMessage(String.Format("Browse Market data received for {0} nodes", response.Response.markets.Count));
+                        AddStatusMessage(String.Format("Search epic data received for {0} nodes", response.Response.markets.Count));
                     }
                     else
                     {
-                        AddStatusMessage("BrowseMarkets : no browse root nodes");
+                        AddStatusMessage("Search epic data recieved for 0 nodes");
                     }
                 }
                 else
@@ -197,10 +197,11 @@ namespace SampleWPFTrader.ViewModel
                     //add selectedepic to the epic string
                     string[] epic = new string[] { selectedEpic };
                     SubscribeToCharts(epic);
+                    SubscribeToPositions(epic);
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first/Invalid Search query");
+                    AddStatusMessage("Please log in first/Invalid epic");
                 }
             }
             catch (Exception ex)
@@ -216,30 +217,33 @@ namespace SampleWPFTrader.ViewModel
             {
                 if (LoggedIn && selectedEpic != "")
                 {
-                    // Unsubscribe from any instruments we are currently subscribed to...
-                    //UnsubscribeFromBrowsePrices();
+                    //open position for selectedepic
+                    CreatePositionRequest position = new CreatePositionRequest();
+                    position.epic = selectedEpic;
+                    position.expiry = "-";
+                    position.direction = "BUY"; //or sell, try buy first
+                    position.size = 1;
+                    position.orderType = "MARKET";
+                    position.guaranteedStop = false;
+                    position.forceOpen = true;
+                    position.currencyCode = "USD";
+                    //createed position 
+                
+                    var response = await igRestApiClient.createPositionV2(position);
 
-                    var response = await igRestApiClient.searchMarket(searchQuery);
-
-                    if (response && (response.Response != null) && (response.Response.markets != null))
+                    if (response && (response.Response != null) && (response.Response.dealReference != null))
                     {
-                        ComboBoxMarkets.Clear();
-                        SelectEpicCommand.IsEnabled = true;
-                        foreach (var node in response.Response.markets)
-                        {
-                            ComboBoxMarkets.Add(node.epic);
-                        }
-
-                        AddStatusMessage(String.Format("Browse Market data received for {0} nodes", response.Response.markets.Count));
+                        AddStatusMessage("Created position. Deal Reference: " + response.Response.dealReference);
+                        //run refresh positions method.
                     }
                     else
                     {
-                        AddStatusMessage("BrowseMarkets : no browse root nodes");
+                        AddStatusMessage("Cannot create position");
                     }
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first/Invalid Search query");
+                    AddStatusMessage("Please log in first/Invalid epic");
                 }
             }
             catch (Exception ex)
@@ -250,11 +254,25 @@ namespace SampleWPFTrader.ViewModel
 
         public void ClosePosition()
         {
-            AddStatusMessage("Add fucking status message");
-
+            
         }
 
-        private void SubscribeToCharts(string[] chartEpics)
+        private void SubscribeToPositions(string epic)
+        {
+            //to do this subscribe to position and close position 
+            try
+            {
+                if (igStreamApiClient != null)
+                {
+                }
+            }
+            catch (Exception ex)
+            {
+                AddStatusMessage("Exception when trying to subscribe to Position Data: " + ex.Message);
+            }
+        }
+
+            private void SubscribeToCharts(string[] chartEpics)
         {
             try
             {
@@ -266,8 +284,7 @@ namespace SampleWPFTrader.ViewModel
                         IgPublicApiData.ChartModel ccd = new IgPublicApiData.ChartModel();
                         ccd.ChartEpic = epic;
                         ChartMarketData.Add(ccd);
-
-                        AddStatusMessage("Subscribing to Chart Data (CandleStick ): " + ccd.ChartEpic);
+                        AddStatusMessage("Subscribing to Chart Data (CandleStick): " + ccd.ChartEpic);
                     }
 
                     _chartSubscribedTableKey = igStreamApiClient.SubscribeToChartCandleData(chartEpics, ChartScale.OneSecond, _chartSubscription);
@@ -280,6 +297,7 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
+        //unsub chart
         private void UnsubscribeFromCharts()
         {
             if ((igStreamApiClient != null) && (_chartSubscribedTableKey != null) && (LoggedIn))
@@ -365,12 +383,15 @@ namespace SampleWPFTrader.ViewModel
             data1.EndOfConsolidation = candleData.EndOfConsolidation;
             data1.IncrimetalTradingVolume = candleData.IncrimetalTradingVolume;
 
-            data1.LastTradedVolume = candleData.LastTradedVolume;
-            data1.LastTradedPrice = new IgPublicApiData.ChartHlocModel();
-            data1.LastTradedPrice.Close = candleData.LastTradedPrice.Close;
-            data1.LastTradedPrice.High = candleData.LastTradedPrice.High;
-            data1.LastTradedPrice.Low = candleData.LastTradedPrice.Low;
-            data1.LastTradedPrice.Open = candleData.LastTradedPrice.Open;
+            if (candleData.LastTradedVolume != null)
+            {
+                data1.LastTradedVolume = candleData.LastTradedVolume;
+                data1.LastTradedPrice = new IgPublicApiData.ChartHlocModel();
+                data1.LastTradedPrice.Close = candleData.LastTradedPrice.Close;
+                data1.LastTradedPrice.High = candleData.LastTradedPrice.High;
+                data1.LastTradedPrice.Low = candleData.LastTradedPrice.Low;
+                data1.LastTradedPrice.Open = candleData.LastTradedPrice.Open;
+            }
 
             data1.Offer = new IgPublicApiData.ChartHlocModel();
             data1.Offer.Close = candleData.Offer.Close;

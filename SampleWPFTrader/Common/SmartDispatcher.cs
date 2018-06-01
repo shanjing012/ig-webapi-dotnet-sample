@@ -26,7 +26,9 @@ namespace SampleWPFTrader.Common
 
         public void addEventMessage(string message)
         {
-            viewModel.AddStatusMessage(message);
+            //viewModel.AddStatusMessage(message);
+            //update debug message inside the applicationviewmodel
+            viewModel.UpdateDebugMessage(message);
         }
 
         public void BeginInvoke(Action a)
