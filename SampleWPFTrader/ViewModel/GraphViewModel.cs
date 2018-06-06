@@ -55,6 +55,12 @@ namespace SampleWPFTrader.ViewModel
             {
                 AddStatusMessage("Graph Tab de-selected");
                 UnsubscribeFromCharts();
+                //clear all stuff
+                ChartMarketData.Clear();
+                ChartMarketHistoryData.Clear();
+                PositionData.Clear();
+                ComboBoxMarkets.Clear();
+                selectedEpic = "";
             }
         }
 
@@ -119,18 +125,28 @@ namespace SampleWPFTrader.ViewModel
         public GraphViewModel()
         {
             InitialiseViewModel();
+
+            //init data containers
             ChartMarketData = new ObservableCollection<IgPublicApiData.ChartModel>();
             ChartMarketHistoryData = new ObservableCollection<IgPublicApiData.ChartModel>();
-            ChartMarketDataView = new CollectionViewSource();
-            ChartMarketDataView.Source = ChartMarketHistoryData;
             ComboBoxMarkets = new ObservableCollection<String>();
+            PositionData = new ObservableCollection<IgPublicApiData.PositionModel>();
 
+            //to avoid sync error or some shit
             System.Windows.Data.BindingOperations.EnableCollectionSynchronization(ChartMarketHistoryData, _graphLock);
 
+            //streaming of candlechart data
             _chartSubscribedTableKey = new SubscribedTableKey();
-            ChartMarketDataView.SortDescriptions.Add(new System.ComponentModel.SortDescription("UpdateTime", System.ComponentModel.ListSortDirection.Descending));
             _chartSubscription = new ChartCandleTableListerner();
             _chartSubscription.Update += OnChartCandleDataUpdate;
+
+
+            //view model to sort candlechart
+            ChartMarketDataView = new CollectionViewSource();
+            ChartMarketDataView.Source = ChartMarketHistoryData;
+            //sort the historic candlechart view
+            ChartMarketDataView.SortDescriptions.Add(new System.ComponentModel.SortDescription("UpdateTime", System.ComponentModel.ListSortDirection.Descending));
+
 
             WireCommands();
         }
@@ -197,7 +213,7 @@ namespace SampleWPFTrader.ViewModel
                     //add selectedepic to the epic string
                     string[] epic = new string[] { selectedEpic };
                     SubscribeToCharts(epic);
-                    SubscribeToPositions(epic);
+                    GetPositions(selectedEpic);
                 }
                 else
                 {
@@ -245,6 +261,8 @@ namespace SampleWPFTrader.ViewModel
                 {
                     AddStatusMessage("Please log in first/Invalid epic");
                 }
+
+                GetPositions(selectedEpic);
             }
             catch (Exception ex)
             {
@@ -254,31 +272,68 @@ namespace SampleWPFTrader.ViewModel
 
         public void ClosePosition()
         {
-            
+            ApplicationDebugData = "";
         }
 
-        private void SubscribeToPositions(string epic)
+        //subscribe to open position with the epic being the provided
+        private async void GetPositions(string epic)
         {
+            PositionData.Clear();
             //to do this subscribe to position and close position 
             try
             {
-                if (igStreamApiClient != null)
+                if (LoggedIn && selectedEpic != "")
                 {
+                    var response = await igRestApiClient.getOTCOpenPositionsV2();
+                    
+                    if(response && (response.Response != null) && (response.Response.positions != null))
+                    {
+                        foreach(var position in response.Response.positions.Where(OpenPosition => OpenPosition.market.epic == selectedEpic))
+                        {
+                            //we need to create a positionmodel and add it into position data.
+                            IgPublicApiData.PositionModel newPosition = new IgPublicApiData.PositionModel();
+                            newPosition.Model = new IgPublicApiData.InstrumentModel();
+
+                            newPosition.Model.Bid = position.market.bid;
+                            newPosition.Model.Offer = position.market.offer;
+                            newPosition.Model.Epic = position.market.epic;
+                            newPosition.Model.InstrumentName = position.market.instrumentName;
+                            newPosition.DealSize = position.position.size;
+                            newPosition.Direction = position.position.direction;
+                            newPosition.StopLevel = position.position.stopLevel;
+                            newPosition.LimitLevel = position.position.limitLevel;
+                            newPosition.Model.StreamingPricesAvailable = position.market.streamingPricesAvailable;
+                            newPosition.Model.MarketStatus = position.market.marketStatus;
+                            newPosition.CreatedDate = position.position.createdDate;
+
+                            PositionData.Add(newPosition);
+                        }
+                    }
+                    else
+                    {
+                        AddStatusMessage("No Positions found");
+                    }
+                }
+                else
+                {
+                    AddStatusMessage("Please log in first/Invalid epic");
                 }
             }
             catch (Exception ex)
             {
-                AddStatusMessage("Exception when trying to subscribe to Position Data: " + ex.Message);
+                AddStatusMessage(ex.Message);
             }
         }
 
-            private void SubscribeToCharts(string[] chartEpics)
+        //subscribe to chart
+        private void SubscribeToCharts(string[] chartEpics)
         {
             try
             {
                 if (igStreamApiClient != null)
                 {
                     ChartMarketData.Clear();
+                    ChartMarketHistoryData.Clear();
                     foreach (var epic in chartEpics)
                     {
                         IgPublicApiData.ChartModel ccd = new IgPublicApiData.ChartModel();
