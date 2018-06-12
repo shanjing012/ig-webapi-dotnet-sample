@@ -724,7 +724,35 @@ namespace SampleWPFTrader.Model
 				}
 			}
 
-			private InstrumentModel _model;
+            private decimal? _openLevel;
+            public decimal? OpenLevel
+            {
+                get { return _openLevel; }
+                set
+                {
+                    if (_openLevel != value)
+                    {
+                        _openLevel = value;
+                        RaisePropertyChanged("OpenLevel");
+                    }
+                }
+            }
+
+            private decimal? _profit;
+            public decimal? Profit
+            {
+                get { return _profit; }
+                set
+                {
+                    if (_profit != value)
+                    {
+                        _profit = value;
+                        RaisePropertyChanged("Profit");
+                    }
+                }
+            }
+
+            private InstrumentModel _model;
 			public InstrumentModel Model
 			{
 				get { return _model; }

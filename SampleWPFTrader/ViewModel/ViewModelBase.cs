@@ -100,7 +100,7 @@ namespace SampleWPFTrader.ViewModel
                 //maybe upon changing tabs
                 if (message.Contains("=="))
                     ApplicationDebugData = "";
-                ApplicationDebugData = DateTime.UtcNow + ": " + message + Environment.NewLine + ApplicationDebugData;
+                ApplicationDebugData = DateTime.UtcNow.ToLocalTime() + ": " + message + Environment.NewLine + ApplicationDebugData;
                 RaisePropertyChanged("ApplicationDebugData");
             }
         }

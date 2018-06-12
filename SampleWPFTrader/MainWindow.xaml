@@ -285,6 +285,7 @@
                         </DockPanel>
                     </Grid>
                 </TabItem>   
+                
                 <TabItem Header="Graph" x:Name="GraphTab" DataContext="{Binding Source={StaticResource gvm}}" IsSelected="{Binding Path=GraphTabSelected}">
                     <Grid DataContext="{Binding Source={StaticResource gvm}}" Margin="0">
                         <Grid.RowDefinitions>
@@ -387,20 +388,19 @@
 
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Path=PositionData}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="name" Binding="{Binding Path=Model.InstrumentName}"/>
-                                        <DataGridTextColumn Header="epic" Binding="{Binding Path=Model.Epic}"/>
+                                        <DataGridTextColumn Header="Epic" Binding="{Binding Path=Model.Epic}"/>
+                                        <DataGridTextColumn Header="Created Date" Binding="{Binding Path=CreationDate}"/>
+                                        <DataGridTextColumn Header="DealID" Binding="{Binding Path=DealId}"/>
+
+                                        <DataGridTextColumn Header="Size" Binding="{Binding Path=OrderSize}"/>
+                                        <DataGridTextColumn Header="Direction" Binding="{Binding Path=Direction}"/>
+                                        <DataGridTextColumn Header="Open Level" Binding="{Binding Path=OpenLevel}"/>
+                                                                               
+                                        <DataGridTextColumn Header="Bid" Binding="{Binding Path=Model.Bid}"/>
+                                        <DataGridTextColumn Header="Offer" Binding="{Binding Path=Model.Offer}"/>
+
                                         <DataGridTextColumn Header="market status" Binding="{Binding Path=Model.MarketStatus}"/>
-                                        <DataGridTextColumn Header="created date" Binding="{Binding Path=CreatedDate}"/>
-                                        <DataGridTextColumn Header="streaming prices available" Binding="{Binding Path=Model.StreamingPricesAvailable}"/>
-                                        <DataGridTextColumn Header="high" Binding="{Binding Path=Model.High}"/>
-                                        <DataGridTextColumn Header="low" Binding="{Binding Path=Model.Low}"/>
-                                        <DataGridTextColumn Header="size" Binding="{Binding Path=DealSize}"/>
-                                        <DataGridTextColumn Header="direction" Binding="{Binding Path=Direction}"/>
-                                        <DataGridTextColumn Header="open level" Binding="{Binding Path=OpenLevel}"/>
-                                        <DataGridTextColumn Header="bid" Binding="{Binding Path=Model.Bid}"/>
-                                        <DataGridTextColumn Header="offer" Binding="{Binding Path=Model.Offer}"/>
-                                        <DataGridTextColumn Header="change" Binding="{Binding Path=Model.NetChange}"/>
-                                        <DataGridTextColumn Header="pctChange" Binding="{Binding Path=Model.PctChange}"/>
+                                        <DataGridTextColumn Header="Earning" Binding="{Binding Path=Profit, StringFormat=N2}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
