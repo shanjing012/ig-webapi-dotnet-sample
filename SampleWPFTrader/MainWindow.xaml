@@ -6,6 +6,7 @@
         xmlns:Converters="clr-namespace:SampleWPFTrader.Converters"
         xmlns:command="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
 
         Title="IG WPF Trader version 0.5" Height="800" Width="1280" WindowState="Maximized">
     <Window.Resources>
@@ -290,13 +291,13 @@
                     <Grid DataContext="{Binding Source={StaticResource gvm}}" Margin="0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*"/>
-                            <RowDefinition Height="2*"/>
+                            <RowDefinition Height="3*"/>
                             <RowDefinition Height="3*"/>
                         </Grid.RowDefinitions>
 
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="4*"/>
-                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1.5*"/>
                         </Grid.ColumnDefinitions>
 
 
@@ -317,22 +318,66 @@
                             <Button Grid.Row="1" Grid.Column="1" Content="Select" Height="30" Width="100" Command="{Binding SelectEpicCommand}" HorizontalAlignment="Left"/>
                         </Grid>
 
-                        <Grid Grid.Row="0" Grid.Column="1">
+                        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2">
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
                                 <RowDefinition Height="1*"/>
                                 <RowDefinition Height="1*"/>
                             </Grid.RowDefinitions>
 
-                            <Button Grid.Row="0" Content="Buy" Height="30" Width="100" HorizontalAlignment="Center" Command="{Binding OpenPositionCommand}"/>
-                            <Button Grid.Row="1" Content="Sell" Height="30" Width="100" HorizontalAlignment="Center" Command="{Binding ClosePositionCommand}"/>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Label Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Limit:" FontFamily="Segoe UI Emoji"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding LimitDistance}" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" FontSize="18" Margin="5" />
+
+                            <Label Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Size:" FontFamily="Segoe UI Emoji"/>
+                            <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PositionOpenSize}" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" FontSize="18" Margin="5" />
+                            
+                            <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="Open -BUY-" Margin="5" HorizontalAlignment="Stretch" Command="{Binding OpenBuyPositionCommand}"/>
+                            <Button Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Content="Open -SELL-" Margin="5" HorizontalAlignment="Stretch" Command="{Binding OpenSellPositionCommand}"/>
+
+                            <Label Grid.Row="5" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="18" Content="{Binding Label}" FontFamily="Segoe UI Emoji"/>
+
+                            <Button Grid.Row="6" Grid.ColumnSpan="2" Content="Close All Positive Positions" HorizontalAlignment="Stretch" Margin="5" Command="{Binding ClosePositivePositionCommand}"/>
+                            <Button Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Content="Close All Positions (+/-)" HorizontalAlignment="Stretch" Margin="5" Command="{Binding ClosePositionCommand}"/>
                         </Grid>
-                        
-                        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+
+                        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <lvc:CartesianChart Grid.Row="0" Series="{Binding SeriesCollection}">
+                                <lvc:CartesianChart.AxisX>
+                                    <lvc:Axis LabelsRotation="45" Labels="{Binding GraphLabels}">
+                                        <lvc:Axis.Separator>
+                                            <lvc:Separator IsEnabled="False" Step="1">
+                                            </lvc:Separator>
+                                        </lvc:Axis.Separator>
+                                    </lvc:Axis>
+                                </lvc:CartesianChart.AxisX>
+                                <lvc:CartesianChart.AxisY>
+                                    <lvc:Axis Title="Value" MinValue="{Binding ChartLow}" MaxValue="{Binding ChartHigh}">
+
+                                    </lvc:Axis>
+                                </lvc:CartesianChart.AxisY>
+                            </lvc:CartesianChart>
+                            
+                            <!--
                             <DataGrid Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Path=ChartMarketData}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Instrument Name" Binding="{Binding ChartEpic}"></DataGridTextColumn>
@@ -346,11 +391,13 @@
                                     <DataGridTextColumn Header="Offer High" Binding="{Binding Offer.High}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Offer Low" Binding="{Binding Offer.Low}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Tick Count" Binding="{Binding TickCount}"></DataGridTextColumn>
+                            
                                     <DataGridTextColumn Header="Day Change %" Binding="{Binding DayChangePct}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Day Change" Binding="{Binding DayChange}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Day High" Binding="{Binding DayHigh}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Day Low" Binding="{Binding DayLow}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Day Mid OpenPrice" Binding="{Binding DayMidOpenPrice}"></DataGridTextColumn>
+                            
                                     <DataGridTextColumn Header="Last Traded Volume" Binding="{Binding LastTradedVolume}"></DataGridTextColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
@@ -368,16 +415,19 @@
                                     <DataGridTextColumn Header="Offer High" Binding="{Binding Offer.High}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Offer Low" Binding="{Binding Offer.Low}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Tick Count" Binding="{Binding TickCount}"></DataGridTextColumn>
+                                    
                                     <DataGridTextColumn Header="Day Change %" Binding="{Binding DayChangePct}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Day Change" Binding="{Binding DayChange}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Day High" Binding="{Binding DayHigh}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Day Low" Binding="{Binding DayLow}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Day Mid OpenPrice" Binding="{Binding DayMidOpenPrice}"></DataGridTextColumn>
+                                    
                                     <DataGridTextColumn Header="Last Traded Volume" Binding="{Binding LastTradedVolume}"></DataGridTextColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
+                            -->
                         </Grid>
-
+                        
                         <Grid Grid.Row="2" Grid.Column="0">
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -400,7 +450,7 @@
                                         <DataGridTextColumn Header="Offer" Binding="{Binding Path=Model.Offer}"/>
 
                                         <DataGridTextColumn Header="market status" Binding="{Binding Path=Model.MarketStatus}"/>
-                                        <DataGridTextColumn Header="Earning" Binding="{Binding Path=Profit, StringFormat=N2}"/>
+                                        <DataGridTextColumn Header="pts" Binding="{Binding Path=Profit, StringFormat=N}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
