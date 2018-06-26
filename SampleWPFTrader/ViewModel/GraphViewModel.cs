@@ -52,7 +52,6 @@ namespace SampleWPFTrader.ViewModel
                 // Get Rest Orders and then subscribe
                 if (LoggedIn)
                 {
-                    //GetBrowseMarketsRoot();
                     ApplicationViewModel.getInstance().AddStatusMessage("Search for an epic corresponding to the market");
                 }
                 else
@@ -63,16 +62,19 @@ namespace SampleWPFTrader.ViewModel
             else
             {
                 ApplicationViewModel.getInstance().AddStatusMessage("Graph Tab de-selected");
-                UnsubscribeFromCharts();
-                //clear all stuff
-                ChartMarketData.Clear();
-                ChartMarketHistoryData.Clear();
-                SeriesCollection[0].Values.Clear();
-                GraphLabels.Clear();
-                PositionData.Clear();
-                ComboBoxMarkets.Clear();
-                selectedEpic = "";
+                clearAll();
             }
+        }
+
+        public void clearAll()
+        {
+            //clear all stuff
+            UnsubscribeFromCharts();
+            SeriesCollection[0].Values.Clear();
+            GraphLabels.Clear();
+            PositionData.Clear();
+            ComboBoxMarkets.Clear();
+            selectedEpic = "";
         }
 
         //variables on the viewmodel
@@ -84,6 +86,8 @@ namespace SampleWPFTrader.ViewModel
         private string positionOpenSize;
         private double chartLow;
         private double chartHigh;
+        private double chartZoom;
+        private double graphEntries;
         private string minuteInterval = "MINUTE_5"; //default 5 min
         //variables public accessors
         public string SelectedEpic
@@ -145,7 +149,7 @@ namespace SampleWPFTrader.ViewModel
         {
             get
             {
-                return chartLow;
+                return chartLow - (0.00003 * ChartZoom);
             }
             set
             {
@@ -157,7 +161,7 @@ namespace SampleWPFTrader.ViewModel
         {
             get
             {
-                return chartHigh;
+                return chartHigh + (0.00003 * ChartZoom);
             }
             set
             {
@@ -165,6 +169,33 @@ namespace SampleWPFTrader.ViewModel
                 RaisePropertyChanged("ChartHigh");
             }
         }
+        public double ChartZoom
+        {
+            get
+            {
+                return chartZoom;
+            }
+            set
+            {
+                chartZoom = value;
+                RaisePropertyChanged("ChartZoom");
+                RaisePropertyChanged("ChartHigh");
+                RaisePropertyChanged("ChartLow");
+            }
+        }
+        public double GraphEntries
+        {
+            get
+            {
+                return graphEntries;
+            }
+            set
+            {
+                graphEntries = value;
+                RaisePropertyChanged("GraphEntries");
+            }
+        }
+
 
         //commands for the buttons on graph
         public RelayCommand SearchEpicCommand
@@ -207,19 +238,17 @@ namespace SampleWPFTrader.ViewModel
             get;
             private set;
         }
-
+        public RelayCommand ShowOpenLevelCommand
+        {
+            get;
+            private set;
+        }
 
         //data containers for our information
-        public ObservableCollection<IgPublicApiData.ChartModel> ChartMarketData { get; set; }
-        public ObservableCollection<IgPublicApiData.ChartModel> ChartMarketHistoryData { get; set; }
         public SeriesCollection SeriesCollection { get; set; }
         public ObservableCollection<IgPublicApiData.OrderModel> PositionData { get; set; }
-        public IgPublicApiData.ChartModel fiveMinChartData { get; set; }
         public ObservableCollection<string> GraphLabels { get; set; }
-
-
         public ObservableCollection<String> ComboBoxMarkets { get; set; }
-        public CollectionViewSource ChartMarketDataView { get; set; }
 
         //initialization
         public GraphViewModel()
@@ -228,25 +257,25 @@ namespace SampleWPFTrader.ViewModel
 
             //init data containers
             positionChartTick = new IgPublicApiData.InstrumentModel();
-            ChartMarketData = new ObservableCollection<IgPublicApiData.ChartModel>(); //for charttick data
-            ChartMarketHistoryData = new ObservableCollection<IgPublicApiData.ChartModel>();
             ComboBoxMarkets = new ObservableCollection<String>();
             PositionData = new ObservableCollection<IgPublicApiData.OrderModel>();
-            fiveMinChartData = new IgPublicApiData.ChartModel();
             selectedLimitDistance = "0";
             positionOpenSize = "1";
             chartLow = 0;
-            ChartHigh = 1;
+            chartHigh = 1;
+            chartZoom = 1;
+            graphEntries = 50;
             GraphLabels = new ObservableCollection<string>();
+            
 
             //series collection try
             SeriesCollection = new SeriesCollection();
             //add values with SeriesCollection[0].Values....?
-            SeriesCollection.Add(new OhlcSeries { Values = new ChartValues<OhlcPoint>() });
+            SeriesCollection.Add(new OhlcSeries { Values = new ChartValues<OhlcPoint>() }); //, MaxColumnWidth = 25
 
             //to avoid sync error or some shit
-            System.Windows.Data.BindingOperations.EnableCollectionSynchronization(ChartMarketHistoryData, _graphLock);
-            
+            //System.Windows.Data.BindingOperations.EnableCollectionSynchronization(ChartMarketHistoryData, _graphLock);
+
             //streaming of candlechart data (5 mins)
             _chart5MinuteSubscribedTableKey = new SubscribedTableKey();
             _chart5MinuteSubscription = new ChartCandleTableListerner();
@@ -255,14 +284,7 @@ namespace SampleWPFTrader.ViewModel
             _chartTickSubscribedTableKey = new SubscribedTableKey();
             _chartTickSubscription = new ChartTickTableListerner();
             _chartTickSubscription.Update += OnChartTickDataUpdate;
-
-            //view model to sort candlechart
-            ChartMarketDataView = new CollectionViewSource();
-            ChartMarketDataView.Source = ChartMarketHistoryData;
-            //sort the historic candlechart view
-            ChartMarketDataView.SortDescriptions.Add(new System.ComponentModel.SortDescription("UpdateTime", System.ComponentModel.ListSortDirection.Descending));
-
-
+            
             WireCommands();
         }
         
@@ -277,6 +299,8 @@ namespace SampleWPFTrader.ViewModel
             CloseAllPositionCommand = new RelayCommand(CloseAllPositions);
             SetOneMinuteCommand = new RelayCommand(SetOneMinuteChart);
             SetFiveMinuteCommand = new RelayCommand(SetFiveMinuteChart);
+            ShowOpenLevelCommand = new RelayCommand(ShowOpenLevel);
+            ShowOpenLevelCommand.IsEnabled = true;
             SearchEpicCommand.IsEnabled = true;
             SelectEpicCommand.IsEnabled = false;
             OpenBuyPositionCommand.IsEnabled = false;
@@ -295,9 +319,6 @@ namespace SampleWPFTrader.ViewModel
             {
                 if (LoggedIn && searchQuery != "")
                 {
-                    // Unsubscribe from any instruments we are currently subscribed to...
-                    //UnsubscribeFromBrowsePrices();
-
                     var response = await igRestApiClient.searchMarket(searchQuery);
 
                     if (response && (response.Response != null) && (response.Response.markets != null))
@@ -358,7 +379,7 @@ namespace SampleWPFTrader.ViewModel
         //may need to set minute interval manually?
         private async void GetHistoricChart(string selectedEpic)
         {
-            ChartMarketHistoryData.Clear();
+            //ChartMarketHistoryData.Clear();
             GraphLabels.Clear();
             SeriesCollection[0].Values.Clear();
 
@@ -366,7 +387,7 @@ namespace SampleWPFTrader.ViewModel
             {
                 if (LoggedIn && selectedEpic != "")
                 {
-                    var response = await igRestApiClient.priceSearchByNumV2(selectedEpic, minuteInterval, "18");
+                    var response = await igRestApiClient.priceSearchByNumV2(selectedEpic, minuteInterval, "49");
                     
                     if (response && response.Response != null && response.Response.prices.Count != 0)
                     {
@@ -374,53 +395,12 @@ namespace SampleWPFTrader.ViewModel
 
                         for (int i = 0; i < response.Response.prices.Count - 1; i++)
                         {
-
-                            IgPublicApiData.ChartModel dataEntered = new IgPublicApiData.ChartModel();
-
-                            dataEntered.ChartEpic = selectedEpic;
-                            dataEntered.Bid = new IgPublicApiData.ChartHlocModel();
-                            dataEntered.Bid.Close = response.Response.prices[i].closePrice.bid;
-                            dataEntered.Bid.High = response.Response.prices[i].highPrice.bid;
-                            dataEntered.Bid.Low = response.Response.prices[i].lowPrice.bid;
-                            dataEntered.Bid.Open = response.Response.prices[i].openPrice.bid;
-
-                            dataEntered.DayChange = 0;
-                            dataEntered.DayChangePct = 0;
-                            dataEntered.DayHigh = 0;
-                            dataEntered.DayLow = 0;
-                            dataEntered.DayMidOpenPrice = 0;
-                            dataEntered.EndOfConsolidation = true; //dummy var
-                            dataEntered.IncrimetalTradingVolume = 0;
-
-                            if (response.Response.prices[i].lastTradedVolume != null)
-                            {
-                                dataEntered.LastTradedVolume = response.Response.prices[i].lastTradedVolume;
-                                dataEntered.LastTradedPrice = new IgPublicApiData.ChartHlocModel();
-                                dataEntered.LastTradedPrice.Close = 0;
-                                dataEntered.LastTradedPrice.High = 0;
-                                dataEntered.LastTradedPrice.Low = 0;
-                                dataEntered.LastTradedPrice.Open = 0;
-                            }
-
-                            dataEntered.Offer = new IgPublicApiData.ChartHlocModel();
-                            dataEntered.Offer.Close = response.Response.prices[i].closePrice.ask;
-                            dataEntered.Offer.Open = response.Response.prices[i].openPrice.ask;
-                            dataEntered.Offer.High = response.Response.prices[i].highPrice.ask;
-                            dataEntered.Offer.Low = response.Response.prices[i].lowPrice.ask;
-
-                            dataEntered.TickCount = 0;
-                            dataEntered.UpdateTime = Convert.ToDateTime(response.Response.prices[i].snapshotTime).ToUniversalTime().ToLocalTime();
-
-                            if (ChartMarketHistoryData.Count() >= 10)
-                                ChartMarketHistoryData.RemoveAt(0);
-                            ChartMarketHistoryData.Add(dataEntered);
-
                             //add to chart
                             addToSeries(
-                                double.Parse(((dataEntered.Bid.Open + dataEntered.Offer.Open)/2).ToString()),
-                                double.Parse(((dataEntered.Bid.High + dataEntered.Offer.High) / 2).ToString()),
-                                double.Parse(((dataEntered.Bid.Low + dataEntered.Offer.Low) / 2).ToString()),
-                                double.Parse(((dataEntered.Bid.Close + dataEntered.Offer.Close) / 2).ToString()),
+                                double.Parse(((response.Response.prices[i].openPrice.bid + response.Response.prices[i].openPrice.ask) /2).ToString()),
+                                double.Parse(((response.Response.prices[i].highPrice.bid + response.Response.prices[i].highPrice.ask) / 2).ToString()),
+                                double.Parse(((response.Response.prices[i].lowPrice.bid + response.Response.prices[i].lowPrice.ask) / 2).ToString()),
+                                double.Parse(((response.Response.prices[i].closePrice.bid + response.Response.prices[i].closePrice.ask) / 2).ToString()),
                                 Convert.ToDateTime(response.Response.prices[i].snapshotTime).ToUniversalTime().ToLocalTime().ToString(strFormat),
                                 (i == 0) //check for 1st
                             );
@@ -607,6 +587,7 @@ namespace SampleWPFTrader.ViewModel
                     {
                         ClosePositivePositionCommand.IsEnabled = false;
                         CloseAllPositionCommand.IsEnabled = false;
+
                         foreach (var position in response1.Response.positions.Where(OpenPosition => OpenPosition.market.epic == selectedEpic))
                         {
                             //we need to create a positionmodel and add it into position data.
@@ -628,12 +609,11 @@ namespace SampleWPFTrader.ViewModel
 
                             if (positionWithDealID.Direction == "SELL")
                             {
-                                positionWithDealID.Profit = (positionWithDealID.OpenLevel - fiveMinChartData.Offer.Open) * positionWithDealID.OrderSize * 10000;
+                                positionWithDealID.Profit = (positionWithDealID.OpenLevel - positionChartTick.Offer) * 10000; //* positionWithDealID.OrderSize 
                             }
                             else
                             {
-                                positionWithDealID.Profit = (fiveMinChartData.Bid.Open - positionWithDealID.OpenLevel) * positionWithDealID.OrderSize * 10000;
-                                //fiveMinChartData.Bid.Open
+                                positionWithDealID.Profit = (positionChartTick.Bid - positionWithDealID.OpenLevel) * 10000; //* positionWithDealID.OrderSize
                             }
 
                             PositionData.Add(positionWithDealID);
@@ -667,13 +647,8 @@ namespace SampleWPFTrader.ViewModel
                 if (igStreamApiClient != null)
                 {
                     UnsubscribeFromCharts();
-                    ChartMarketData.Clear();
-                    ChartMarketHistoryData.Clear();
                     foreach (var epic in chartEpics)
                     {
-                        IgPublicApiData.ChartModel chartModel = new IgPublicApiData.ChartModel();
-                        chartModel.ChartEpic = epic;
-                        ChartMarketData.Add(chartModel);
                         ApplicationViewModel.getInstance().AddStatusMessage("Subscribing to Chart Data (CandleStick): " + epic);
                         ApplicationViewModel.getInstance().AddStatusMessage("Subscribing to Chart Tick Data: " + epic);
                     }
@@ -715,10 +690,11 @@ namespace SampleWPFTrader.ViewModel
         private void OnChartTickDataUpdate(object sender, UpdateArgs<ChartTickData> e)
         {
             var updateTick = e.UpdateData;
+            //update chart tick data here to update all positions
             positionChartTick.Bid = updateTick.Bid;
             positionChartTick.Offer = updateTick.Offer;
-            //do calculation here?
 
+            //each ordermodel in position data collection, calculate the points
             foreach(IgPublicApiData.OrderModel orderModel in PositionData)
             {
                 if(orderModel.Direction == "SELL")
@@ -740,90 +716,6 @@ namespace SampleWPFTrader.ViewModel
             var tempArray = tempEpic.Split(':');
             var epic = tempArray[0];
             var time = tempArray[1];
-
-            //check if the time changed, if change, add the new one to the collection. Else, just update fiveminchartdata
-            if (fiveMinChartData.UpdateTime != null && fiveMinChartData.UpdateTime != candleUpdate.UpdateTime.Value.ToLocalTime())
-            {
-
-                //create fiveminchartdata entry and add into datagrid
-                IgPublicApiData.ChartModel dataEntered = new IgPublicApiData.ChartModel();
-
-                dataEntered.ChartEpic = fiveMinChartData.ChartEpic;
-                dataEntered.Bid = new IgPublicApiData.ChartHlocModel();
-                dataEntered.Bid.Close = fiveMinChartData.Bid.Close;
-                dataEntered.Bid.High = fiveMinChartData.Bid.High;
-                dataEntered.Bid.Low = fiveMinChartData.Bid.Low;
-                dataEntered.Bid.Open = fiveMinChartData.Bid.Open;
-
-                dataEntered.DayChange = fiveMinChartData.DayChange;
-                dataEntered.DayChangePct = fiveMinChartData.DayChangePct;
-                dataEntered.DayHigh = fiveMinChartData.DayHigh;
-                dataEntered.DayLow = fiveMinChartData.DayLow;
-                dataEntered.DayMidOpenPrice = fiveMinChartData.DayMidOpenPrice;
-                dataEntered.EndOfConsolidation = fiveMinChartData.EndOfConsolidation;
-                dataEntered.IncrimetalTradingVolume = fiveMinChartData.IncrimetalTradingVolume;
-
-                if (fiveMinChartData.LastTradedVolume != null)
-                {
-                    dataEntered.LastTradedVolume = fiveMinChartData.LastTradedVolume;
-                    dataEntered.LastTradedPrice = new IgPublicApiData.ChartHlocModel();
-                    dataEntered.LastTradedPrice.Close = fiveMinChartData.LastTradedPrice.Close;
-                    dataEntered.LastTradedPrice.High = fiveMinChartData.LastTradedPrice.High;
-                    dataEntered.LastTradedPrice.Low = fiveMinChartData.LastTradedPrice.Low;
-                    dataEntered.LastTradedPrice.Open = fiveMinChartData.LastTradedPrice.Open;
-                }
-
-                dataEntered.Offer = new IgPublicApiData.ChartHlocModel();
-                dataEntered.Offer.Close = fiveMinChartData.Offer.Close;
-                dataEntered.Offer.Open = fiveMinChartData.Offer.Open;
-                dataEntered.Offer.High = fiveMinChartData.Offer.High;
-                dataEntered.Offer.Low = fiveMinChartData.Offer.Low;
-
-                dataEntered.TickCount = fiveMinChartData.TickCount;
-                dataEntered.UpdateTime = fiveMinChartData.UpdateTime.Value.ToLocalTime();
-
-                //add to datagrid
-                if (ChartMarketHistoryData.Count() >= 10)
-                    ChartMarketHistoryData.RemoveAt(0);
-                ChartMarketHistoryData.Add(dataEntered);
-
-
-            }
-
-            //update fiveminchartdata
-            fiveMinChartData.ChartEpic = epic;
-            fiveMinChartData.Bid = new IgPublicApiData.ChartHlocModel();
-            fiveMinChartData.Bid.Close = candleUpdate.Bid.Close;
-            fiveMinChartData.Bid.High = candleUpdate.Bid.High;
-            fiveMinChartData.Bid.Low = candleUpdate.Bid.Low;
-            fiveMinChartData.Bid.Open = candleUpdate.Bid.Open;
-
-            fiveMinChartData.DayChange = candleUpdate.DayChange;
-            fiveMinChartData.DayChangePct = candleUpdate.DayChangePct;
-            fiveMinChartData.DayHigh = candleUpdate.DayHigh;
-            fiveMinChartData.DayLow = candleUpdate.DayLow;
-            fiveMinChartData.DayMidOpenPrice = candleUpdate.DayMidOpenPrice;
-            fiveMinChartData.EndOfConsolidation = candleUpdate.EndOfConsolidation;
-            fiveMinChartData.IncrimetalTradingVolume = candleUpdate.IncrimetalTradingVolume;
-
-            if (candleUpdate.LastTradedVolume != null)
-            {
-                fiveMinChartData.LastTradedVolume = candleUpdate.LastTradedVolume;
-                fiveMinChartData.LastTradedPrice = new IgPublicApiData.ChartHlocModel();
-                fiveMinChartData.LastTradedPrice.Close = candleUpdate.LastTradedPrice.Close;
-                fiveMinChartData.LastTradedPrice.High = candleUpdate.LastTradedPrice.High;
-                fiveMinChartData.LastTradedPrice.Low = candleUpdate.LastTradedPrice.Low;
-                fiveMinChartData.LastTradedPrice.Open = candleUpdate.LastTradedPrice.Open;
-            }
-
-            fiveMinChartData.Offer = new IgPublicApiData.ChartHlocModel();
-            fiveMinChartData.Offer.Close = candleUpdate.Offer.Close;
-            fiveMinChartData.Offer.Open = candleUpdate.Offer.Open;
-            fiveMinChartData.Offer.High = candleUpdate.Offer.High;
-            fiveMinChartData.Offer.Low = candleUpdate.Offer.Low;
-
-            fiveMinChartData.TickCount = candleUpdate.TickCount;
-            fiveMinChartData.UpdateTime = candleUpdate.UpdateTime.Value.ToLocalTime();
 
             try
             {
@@ -863,19 +755,20 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
+        //to add to the chart series (display chart)
         //bool first is for when it is the first entry, only used in get historic.
         //only remove historic when more than 20 
         private void addToSeries(double open, double high, double low, double close, string label, bool first)
         {
             OhlcPoint graphPoint = new OhlcPoint(open, high, low, close);
 
-            if (ChartLow > graphPoint.Low - 0.00003 || first)
-                ChartLow = graphPoint.Low - 0.00003;
+            if (ChartLow > graphPoint.Low || first)
+                ChartLow = graphPoint.Low;
 
-            if (ChartHigh < graphPoint.High + 0.00003 || first)
-                ChartHigh = graphPoint.High + 0.00003;
+            if (ChartHigh < graphPoint.High || first)
+                ChartHigh = graphPoint.High;
 
-            if (SeriesCollection[0].Values.Count >= 20)
+            while (SeriesCollection[0].Values.Count >= graphEntries)
             {
                 GraphLabels.RemoveAt(0);
                 SeriesCollection[0].Values.RemoveAt(0);
@@ -936,5 +829,11 @@ namespace SampleWPFTrader.ViewModel
                 ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
             }
         }
+
+        //Show open level
+        private void ShowOpenLevel()
+        {
+        }
+
     }
 }
