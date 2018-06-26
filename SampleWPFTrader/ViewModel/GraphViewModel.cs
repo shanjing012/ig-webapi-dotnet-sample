@@ -48,25 +48,27 @@ namespace SampleWPFTrader.ViewModel
         {
             if (GraphTabSelected)
             {
-                AddStatusMessage("== Graph Tab Selected ==");
+                ApplicationViewModel.getInstance().AddStatusMessage("== Graph Tab Selected ==");
                 // Get Rest Orders and then subscribe
                 if (LoggedIn)
                 {
                     //GetBrowseMarketsRoot();
-                    AddStatusMessage("Select some epic.");
+                    ApplicationViewModel.getInstance().AddStatusMessage("Search for an epic corresponding to the market");
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first");
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first");
                 }
             }
             else
             {
-                AddStatusMessage("Graph Tab de-selected");
+                ApplicationViewModel.getInstance().AddStatusMessage("Graph Tab de-selected");
                 UnsubscribeFromCharts();
                 //clear all stuff
                 ChartMarketData.Clear();
                 ChartMarketHistoryData.Clear();
+                SeriesCollection[0].Values.Clear();
+                GraphLabels.Clear();
                 PositionData.Clear();
                 ComboBoxMarkets.Clear();
                 selectedEpic = "";
@@ -74,7 +76,7 @@ namespace SampleWPFTrader.ViewModel
         }
 
         //variables on the viewmodel
-        private string strFormat = "h:mm tt";
+        private string strFormat = "h:mm tt"; //x axis label format
         private string selectedEpic;
         private string searchQuery;
         private string selectedLimitDistance;
@@ -82,6 +84,7 @@ namespace SampleWPFTrader.ViewModel
         private string positionOpenSize;
         private double chartLow;
         private double chartHigh;
+        private string minuteInterval = "MINUTE_5"; //default 5 min
         //variables public accessors
         public string SelectedEpic
         {
@@ -194,6 +197,17 @@ namespace SampleWPFTrader.ViewModel
             get;
             private set;
         }
+        public RelayCommand SetOneMinuteCommand
+        {
+            get;
+            private set;
+        }
+        public RelayCommand SetFiveMinuteCommand
+        {
+            get;
+            private set;
+        }
+
 
         //data containers for our information
         public ObservableCollection<IgPublicApiData.ChartModel> ChartMarketData { get; set; }
@@ -261,12 +275,16 @@ namespace SampleWPFTrader.ViewModel
             OpenSellPositionCommand = new RelayCommand(OpenSellPosition);
             ClosePositivePositionCommand = new RelayCommand(ClosePositivePositions);
             CloseAllPositionCommand = new RelayCommand(CloseAllPositions);
+            SetOneMinuteCommand = new RelayCommand(SetOneMinuteChart);
+            SetFiveMinuteCommand = new RelayCommand(SetFiveMinuteChart);
             SearchEpicCommand.IsEnabled = true;
             SelectEpicCommand.IsEnabled = false;
-            OpenBuyPositionCommand.IsEnabled = true;
-            OpenSellPositionCommand.IsEnabled = true;
-            ClosePositivePositionCommand.IsEnabled = true;
-            CloseAllPositionCommand.IsEnabled = true;
+            OpenBuyPositionCommand.IsEnabled = false;
+            OpenSellPositionCommand.IsEnabled = false;
+            ClosePositivePositionCommand.IsEnabled = false;
+            CloseAllPositionCommand.IsEnabled = false;
+            SetOneMinuteCommand.IsEnabled = false;
+            SetFiveMinuteCommand.IsEnabled = false;
         }
 
         //search for epic to view
@@ -291,21 +309,21 @@ namespace SampleWPFTrader.ViewModel
                             ComboBoxMarkets.Add(node.epic);
                         }
                         
-                        AddStatusMessage(String.Format("Search epic data received for {0} nodes", response.Response.markets.Count));
+                        ApplicationViewModel.getInstance().AddStatusMessage(String.Format("Search epic data received for {0} nodes", response.Response.markets.Count));
                     }
                     else
                     {
-                        AddStatusMessage("Search epic data recieved for 0 nodes");
+                        ApplicationViewModel.getInstance().AddStatusMessage("Search epic data recieved for 0 nodes");
                     }
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first/Invalid Search query");
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first/Invalid Search query");
                 }
             }
             catch (Exception ex)
             {
-                AddStatusMessage(ex.Message);
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
             }
         }
 
@@ -318,18 +336,21 @@ namespace SampleWPFTrader.ViewModel
                     //add selectedepic to the epic string
                     string[] epic = new string[] { selectedEpic };
                     SubscribeToCharts(epic);
+                    SetOneMinuteCommand.IsEnabled = true;
                     PositionData.Clear();
                     GetPositions(selectedEpic);
                     GetHistoricChart(selectedEpic);
+                    OpenBuyPositionCommand.IsEnabled = true;
+                    OpenSellPositionCommand.IsEnabled = true;
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first/Invalid epic");
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first/Invalid epic");
                 }
             }
             catch (Exception ex)
             {
-                AddStatusMessage(ex.Message);
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
             }
         }
 
@@ -338,16 +359,19 @@ namespace SampleWPFTrader.ViewModel
         private async void GetHistoricChart(string selectedEpic)
         {
             ChartMarketHistoryData.Clear();
+            GraphLabels.Clear();
             SeriesCollection[0].Values.Clear();
 
             try
             {
                 if (LoggedIn && selectedEpic != "")
                 {
-                    var response = await igRestApiClient.priceSearchByNumV2(selectedEpic, "MINUTE_5", "18");
-
+                    var response = await igRestApiClient.priceSearchByNumV2(selectedEpic, minuteInterval, "18");
+                    
                     if (response && response.Response != null && response.Response.prices.Count != 0)
                     {
+                        ApplicationViewModel.getInstance().AddStatusMessage("Remaining allowances this week: " + response.Response.allowance.remainingAllowance + ".");
+
                         for (int i = 0; i < response.Response.prices.Count - 1; i++)
                         {
 
@@ -404,17 +428,17 @@ namespace SampleWPFTrader.ViewModel
                     }
                     else
                     {
-                        AddStatusMessage("No response / No historic data");
+                        ApplicationViewModel.getInstance().AddStatusMessage("No response / No historic data");
                     }
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first/Invalid epic");
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first/Invalid epic");
                 }
             }
             catch (Exception ex)
             {
-                AddStatusMessage(ex.Message);
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
             }
         }
 
@@ -444,14 +468,15 @@ namespace SampleWPFTrader.ViewModel
                     position.epic = selectedEpic;
                     position.expiry = "-";
                     position.direction = direction;
-                    if (decimal.Parse(positionOpenSize) > 0 || selectedLimitDistance != "")
+                    if (decimal.Parse(positionOpenSize) > 0)
                         position.size = decimal.Parse(positionOpenSize);
                     else
                         position.size = 1;
                     position.orderType = "MARKET";
                     position.guaranteedStop = false;
-                    if (selectedLimitDistance != "0" || selectedLimitDistance != "")
+                    if (decimal.Parse(selectedLimitDistance) > 0)
                         position.limitDistance = decimal.Parse(selectedLimitDistance);
+                    ApplicationViewModel.getInstance().AddStatusMessage(position.limitDistance.ToString());
                     position.forceOpen = true;
                     position.currencyCode = currencyTraded;
                     
@@ -460,21 +485,21 @@ namespace SampleWPFTrader.ViewModel
 
                     if (response && (response.Response != null) && (response.Response.dealReference != null))
                     {
-                        AddStatusMessage("Created position. Deal Reference: " + response.Response.dealReference);
+                        ApplicationViewModel.getInstance().AddStatusMessage("Created position. Deal Reference: " + response.Response.dealReference);
                     }
                     else
                     {
-                        AddStatusMessage("Cannot create position");
+                        ApplicationViewModel.getInstance().AddStatusMessage("Cannot create position");
                     }
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first/Invalid epic");
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first/Invalid epic");
                 }
             }
             catch (Exception ex)
             {
-                AddStatusMessage(ex.Message);
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
             }
         }
 
@@ -502,22 +527,22 @@ namespace SampleWPFTrader.ViewModel
 
                         if (response && (response.Response != null) && (response.Response.dealReference != null))
                         {
-                            AddStatusMessage("Closed position. Deal Reference: " + response.Response.dealReference);
+                            ApplicationViewModel.getInstance().AddStatusMessage("Closed position. Deal Reference: " + response.Response.dealReference);
                         }
                         else
                         {
-                            AddStatusMessage("Cannot close position: " + response.Response.dealReference);
+                            ApplicationViewModel.getInstance().AddStatusMessage("Cannot close position: " + response.Response.dealReference);
                         }
                     }
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first/Invalid epic");
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first/Invalid epic");
                 }
             }
             catch (Exception ex)
             {
-                AddStatusMessage(ex.Message);
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
             }
         }
 
@@ -577,10 +602,12 @@ namespace SampleWPFTrader.ViewModel
 
                     //get all positions
                     var response1 = await igRestApiClient.getOTCOpenPositionsV2();
-                    
-                    if(response1 && (response1.Response != null) && (response1.Response.positions != null))
+
+                    if (response1 && (response1.Response != null) && (response1.Response.positions.Count > 0))
                     {
-                        foreach(var position in response1.Response.positions.Where(OpenPosition => OpenPosition.market.epic == selectedEpic))
+                        ClosePositivePositionCommand.IsEnabled = false;
+                        CloseAllPositionCommand.IsEnabled = false;
+                        foreach (var position in response1.Response.positions.Where(OpenPosition => OpenPosition.market.epic == selectedEpic))
                         {
                             //we need to create a positionmodel and add it into position data.
                             IgPublicApiData.OrderModel positionWithDealID = new IgPublicApiData.OrderModel();
@@ -601,29 +628,33 @@ namespace SampleWPFTrader.ViewModel
 
                             if (positionWithDealID.Direction == "SELL")
                             {
-                                positionWithDealID.Profit = (positionWithDealID.OpenLevel - ChartMarketData.First().Offer.Open) * positionWithDealID.OrderSize * 10000;
+                                positionWithDealID.Profit = (positionWithDealID.OpenLevel - fiveMinChartData.Offer.Open) * positionWithDealID.OrderSize * 10000;
                             }
                             else
                             {
-                                positionWithDealID.Profit = (ChartMarketData.First().Bid.Open - positionWithDealID.OpenLevel) * positionWithDealID.OrderSize * 10000;
+                                positionWithDealID.Profit = (fiveMinChartData.Bid.Open - positionWithDealID.OpenLevel) * positionWithDealID.OrderSize * 10000;
+                                //fiveMinChartData.Bid.Open
                             }
 
                             PositionData.Add(positionWithDealID);
+
+                            ClosePositivePositionCommand.IsEnabled = true;
+                            CloseAllPositionCommand.IsEnabled = true;
                         }
                     }
                     else
                     {
-                        AddStatusMessage("No Positions found");
+                        ApplicationViewModel.getInstance().AddStatusMessage("No Positions found");
                     }
                 }
                 else
                 {
-                    AddStatusMessage("Please log in first/Invalid epic");
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first/Invalid epic");
                 }
             }
             catch (Exception ex)
             {
-                AddStatusMessage(ex.Message);
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
             }
         }
 
@@ -643,19 +674,24 @@ namespace SampleWPFTrader.ViewModel
                         IgPublicApiData.ChartModel chartModel = new IgPublicApiData.ChartModel();
                         chartModel.ChartEpic = epic;
                         ChartMarketData.Add(chartModel);
-                        AddStatusMessage("Subscribing to Chart Data (CandleStick): " + epic);
-                        AddStatusMessage("Subscribing to Chart Tick Data: " + epic);
+                        ApplicationViewModel.getInstance().AddStatusMessage("Subscribing to Chart Data (CandleStick): " + epic);
+                        ApplicationViewModel.getInstance().AddStatusMessage("Subscribing to Chart Tick Data: " + epic);
                     }
+                    IGWebApiClient.ChartScale scale;
+                    if (minuteInterval == "MINUTE_5")
+                        scale = ChartScale.FiveMinute;
+                    else
+                        scale = ChartScale.OneMinute;
 
                     //chart five minute
-                    _chart5MinuteSubscribedTableKey = igStreamApiClient.SubscribeToChartCandleData(chartEpics, ChartScale.OneMinute, _chart5MinuteSubscription);
+                    _chart5MinuteSubscribedTableKey = igStreamApiClient.SubscribeToChartCandleData(chartEpics, scale, _chart5MinuteSubscription);
                     //chart tick
                     _chartTickSubscribedTableKey = igStreamApiClient.SubscribeToChartTicks(chartEpics, _chartTickSubscription);
                 }
             }
             catch (Exception ex)
             {
-                AddStatusMessage("Exception when trying to subscribe to Chart Data: " + ex.Message);
+                ApplicationViewModel.getInstance().AddStatusMessage("Exception when trying to subscribe to Chart Data: " + ex.Message);
             }
         }
 
@@ -671,7 +707,7 @@ namespace SampleWPFTrader.ViewModel
                 igStreamApiClient.UnsubscribeTableKey(_chartTickSubscribedTableKey);
                 _chartTickSubscribedTableKey = null;
 
-                AddStatusMessage("GraphViewModel : Unsubscribing from candle data from charts");
+                ApplicationViewModel.getInstance().AddStatusMessage("GraphViewModel : Unsubscribing from candle data from charts");
             }
         }
 
@@ -791,7 +827,7 @@ namespace SampleWPFTrader.ViewModel
 
             try
             {
-                if (GraphLabels.Count != 0)
+                if (GraphLabels.Count != 0 && SeriesCollection[0].Values.Count != 0)
                 {
                     if (candleUpdate.UpdateTime.Value.ToLocalTime().ToString(strFormat) != GraphLabels.Last())
                     {
@@ -823,7 +859,7 @@ namespace SampleWPFTrader.ViewModel
             }
             catch(Exception ex)
             {
-                AddStatusMessage(ex.ToString());
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.ToString());
             }
         }
 
@@ -847,6 +883,58 @@ namespace SampleWPFTrader.ViewModel
             GraphLabels.Add(label);
             SeriesCollection[0].Values.Add(graphPoint);
 
+        }
+
+        //set chart to one minute, get historic data
+        private void SetOneMinuteChart()
+        {
+            minuteInterval = "MINUTE";
+            SetFiveMinuteCommand.IsEnabled = true;
+            SetOneMinuteCommand.IsEnabled = false;
+            try
+            {
+                if (LoggedIn && selectedEpic != "")
+                {
+                    //add selectedepic to the epic string
+                    string[] epic = new string[] { selectedEpic };
+                    SubscribeToCharts(epic);
+                    GetHistoricChart(selectedEpic);
+                }
+                else
+                {
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first/Invalid epic");
+                }
+            }
+            catch (Exception ex)
+            {
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
+            }
+        }
+
+        //set chart to five minute, get historic data
+        private void SetFiveMinuteChart()
+        {
+            minuteInterval = "MINUTE_5";
+            SetOneMinuteCommand.IsEnabled = true;
+            SetFiveMinuteCommand.IsEnabled = false;
+            try
+            {
+                if (LoggedIn && selectedEpic != "")
+                {
+                    //add selectedepic to the epic string
+                    string[] epic = new string[] { selectedEpic };
+                    SubscribeToCharts(epic);
+                    GetHistoricChart(selectedEpic);
+                }
+                else
+                {
+                    ApplicationViewModel.getInstance().AddStatusMessage("Please log in first/Invalid epic");
+                }
+            }
+            catch (Exception ex)
+            {
+                ApplicationViewModel.getInstance().AddStatusMessage(ex.Message);
+            }
         }
     }
 }

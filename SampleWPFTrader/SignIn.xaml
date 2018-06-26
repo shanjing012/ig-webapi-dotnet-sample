@@ -1,0 +1,68 @@
+﻿<Window x:Class="SampleWPFTrader.SignIn"
+        x:Name="LoginWindow"
+        xmlns:viewModel="clr-namespace:SampleWPFTrader.ViewModel"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SampleWPFTrader"
+        
+        mc:Ignorable="d"
+        Title="IG App Sign In" Height="400" Width="525" ResizeMode="NoResize">
+    
+    <Window.Resources>
+        <viewModel:LoginViewModel x:Key="lvm" />
+    </Window.Resources>
+
+    <Grid Background="Bisque" DataContext="{Binding Source={StaticResource lvm}}">
+
+        <TextBlock Height="23" HorizontalAlignment="Left" Margin="10,5,0,0" Name="textBlockHeading" Text="Log in:" VerticalAlignment="Top" Width="110"  FontSize="17" FontStretch="ExtraCondensed"/>
+
+        <!--end Button as a Link button using style-->
+
+        <Grid Margin="30,0,30,30" Background="White" Height="264" VerticalAlignment="Bottom">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="0.5*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Username: " HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" />
+            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" VerticalContentAlignment="Center" FontSize="14" Text="{Binding Username}"></TextBox>
+            
+            <TextBlock Grid.Row="1" Text="Password: " HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" />
+            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" VerticalContentAlignment="Center" FontSize="14" Text="{Binding Password}"></TextBox>
+
+            <TextBlock Grid.Row="2" Text="API Key: " HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" />
+            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" VerticalContentAlignment="Center" FontSize="14" Text="{Binding APIKey}"></TextBox>
+
+            <TextBlock Grid.Row="3" Text="Environment: " HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="14" />
+
+            <Grid Grid.Row="3" Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <ComboBox Grid.Row="3" Margin="5" Text="{Binding Environment}" FontSize="14">
+                    <ComboBoxItem>demo</ComboBoxItem>
+                    <ComboBoxItem>live</ComboBoxItem>
+                </ComboBox>
+            </Grid>
+            
+            <Button Grid.Row="4" Grid.Column="1" Margin="50,5" FontSize="14" Command="{Binding LoginCommand}" CommandParameter="{Binding ElementName=LoginWindow}">Login</Button>
+
+        </Grid>
+
+    </Grid>
+</Window>

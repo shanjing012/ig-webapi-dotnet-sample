@@ -19,9 +19,33 @@ namespace SampleWPFTrader.ViewModel
 		}
 		
         public static string CurrentAccountId;
-      
+
+
+        private static string username;
+        private static string password;
+        private static string apikey;
+        private static string env;
+        public void SetLoginInfo(string Username, string Password, string APIKey, string Environment)
+        {
+            username = Username;
+            password = Password;
+            apikey = APIKey;
+            env = Environment;
+        }
+
+        public NameValueCollection GetLoginInfo()
+        {
+            var loginDetails = new NameValueCollection();
+            loginDetails.Add("environment", env);
+            loginDetails.Add("username", username);
+            loginDetails.Add("password", password);
+            loginDetails.Add("apikey", apikey);
+            return loginDetails;
+        }
+
         public void InitialiseViewModel()
         {
+            //this - changed @loginfeature
             var igWebApiConnectionConfig = ConfigurationManager.GetSection("IgWebApiConnection") as NameValueCollection;
             string env = igWebApiConnectionConfig["environment"];
 
@@ -68,13 +92,13 @@ namespace SampleWPFTrader.ViewModel
         // Add a message to the status textbox
         public void AddStatusMessage(string message)
         {
-            //UpdateDebugMessage(message);
-            SmartDispatcher smartDispatcher = (SmartDispatcher)SmartDispatcher.getInstance();
+            UpdateDebugMessage(message);
+            //SmartDispatcher smartDispatcher = (SmartDispatcher)SmartDispatcher.getInstance();
             //calls smartdispatcher to update debugdata in applicationviewmodel, cause this doesnt work for all vms
-            smartDispatcher.addEventMessage(message);
+            //smartDispatcher.addEventMessage(message);
         }
 
-        private static string _applicationDebugData;
+        private string _applicationDebugData;
 
         public string ApplicationDebugData
         {
