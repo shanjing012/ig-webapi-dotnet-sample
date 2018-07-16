@@ -231,8 +231,8 @@ namespace SampleWPFTrader.ViewModel
 			UpdateDebugMessage("Attempting login");
 
             //change this also @loginfeature
-            var igWebApiConnectionConfig = ConfigurationManager.GetSection("IgWebApiConnection") as NameValueCollection;
-            //var igWebApiConnectionConfig = GetLoginInfo();
+            //var igWebApiConnectionConfig = ConfigurationManager.GetSection("IgWebApiConnection") as NameValueCollection;
+            var igWebApiConnectionConfig = GetLoginInfo();
 
             string env = igWebApiConnectionConfig["environment"];
             string userName = igWebApiConnectionConfig["username"];

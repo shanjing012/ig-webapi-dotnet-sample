@@ -189,7 +189,7 @@ namespace IGWebApiClient
             {
                 ParseHeaders(conversationContext, response.Headers);
                 localVar.StatusCode = response.StatusCode;
-                eventDispatcher.addEventMessage(method.Method + " request to " + _baseUrl + uri + " returned status " + localVar.StatusCode);
+                //eventDispatcher.addEventMessage(method.Method + " request to " + _baseUrl + uri + " returned status " + localVar.StatusCode);
                 if (localVar.StatusCode == HttpStatusCode.OK)
                 {
                     content = await response.Content.ReadAsStringAsync();

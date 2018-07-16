@@ -329,6 +329,9 @@
                                 <RowDefinition Height="1*"/>
                                 <RowDefinition Height="1*"/>
                                 <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
                             </Grid.RowDefinitions>
 
                             <Grid.ColumnDefinitions>
@@ -338,26 +341,48 @@
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Label Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Limit:" FontFamily="Segoe UI Emoji"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding LimitDistance}" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" FontSize="18" Margin="5" />
-
-                            <Label Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Size:" FontFamily="Segoe UI Emoji"/>
-                            <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PositionOpenSize}" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" FontSize="18" Margin="5" />
+                            <Label Grid.Row="5" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Size:" FontFamily="Segoe UI Emoji"/>
+                            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PositionOpenSize}" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" FontSize="18" Margin="5" />
                             
-                            <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="Open -BUY-" Margin="5" HorizontalAlignment="Stretch" Command="{Binding OpenBuyPositionCommand}"/>
-                            <Button Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Content="Open -SELL-" Margin="5" HorizontalAlignment="Stretch" Command="{Binding OpenSellPositionCommand}"/>
+                            <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="Open -BUY-" Margin="5" HorizontalAlignment="Stretch" Command="{Binding OpenBuyPositionCommand}"/>
+                            <Button Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Content="Open -SELL-" Margin="5" HorizontalAlignment="Stretch" Command="{Binding OpenSellPositionCommand}"/>
 
-                            <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Content="One Minute Chart" Margin="5" HorizontalAlignment="Stretch" Command="{Binding SetOneMinuteCommand}"/>
-                            <Button Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Content="Five Minute Chart" Margin="5" HorizontalAlignment="Stretch" Command="{Binding SetFiveMinuteCommand}"/>
+                            <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="One Minute Chart" Margin="5" HorizontalAlignment="Stretch" Command="{Binding SetOneMinuteCommand}"/>
+                            <Button Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Content="Five Minute Chart" Margin="5" HorizontalAlignment="Stretch" Command="{Binding SetFiveMinuteCommand}"/>
 
-                            <Slider Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" Maximum="100" Margin="10" Value="{Binding ChartZoom}"/>
-                            <Label Grid.Row="3" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Scale: " FontFamily="Segoe UI Emoji"/>
+                            <Slider Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" Maximum="100" Margin="10" Value="{Binding ChartZoom}"/>
+                            <Label Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Scale: " FontFamily="Segoe UI Emoji"/>
 
-                            <Label Grid.Row="4" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Entries:" FontFamily="Segoe UI Emoji"/>
-                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding GraphEntries}" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" FontSize="18" Margin="5" />
+                            <Label Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Entries:" FontFamily="Segoe UI Emoji"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding GraphEntries}" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" FontSize="18" Margin="5" />
 
-                            <Button Grid.Row="6" Grid.ColumnSpan="2" Content="Close All Positive Positions" HorizontalAlignment="Stretch" Margin="5" Command="{Binding ClosePositivePositionCommand}"/>
-                            <Button Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Content="Close All Positions (+/-)" HorizontalAlignment="Stretch" Margin="5" Command="{Binding CloseAllPositionCommand}"/>
+                            <Button Grid.Row="3" Grid.ColumnSpan="2" Content="Close All Positive Positions" HorizontalAlignment="Stretch" Margin="5" Command="{Binding ClosePositivePositionCommand}"/>
+                            <Button Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Content="Close All Positions (+/-)" HorizontalAlignment="Stretch" Margin="5" Command="{Binding CloseAllPositionCommand}"/>
+
+                            <Label Grid.Row="6" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="12" Content="4x Up/Down: " FontFamily="Segoe UI Emoji"/>
+                            <CheckBox Grid.Row="6" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsChecked="{Binding EntryOne}"></CheckBox>
+
+                            <Label Grid.Row="6" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="trend 5: " FontFamily="Segoe UI Emoji"/>
+                            <CheckBox Grid.Row="6" Grid.Column="3" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsChecked="{Binding ExitOne}"></CheckBox>
+
+                            <Label Grid.Row="7" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="12" Content="2xDown+1xUp: " FontFamily="Segoe UI Emoji"/>
+                            <CheckBox Grid.Row="7" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsChecked="{Binding EntryTwo}"></CheckBox>
+
+                            <Label Grid.Row="7" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Exit 2: " FontFamily="Segoe UI Emoji"/>
+                            <CheckBox Grid.Row="7" Grid.Column="3" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsChecked="{Binding ExitTwo}"></CheckBox>
+
+                            <Label Grid.Row="8" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Avg 30min: " FontFamily="Segoe UI Emoji"/>
+                            <CheckBox Grid.Row="8" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsChecked="{Binding EntryThree}"></CheckBox>
+
+                            <Label Grid.Row="8" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Exit 3: " FontFamily="Segoe UI Emoji"/>
+                            <CheckBox Grid.Row="8" Grid.Column="3" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsChecked="{Binding ExitThree}"></CheckBox>
+
+                            <Label Grid.Row="9" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Steep: " FontFamily="Segoe UI Emoji"/>
+                            <CheckBox Grid.Row="9" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsChecked="{Binding EntryFour}"></CheckBox>
+
+                            <Label Grid.Row="9" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="18" Content="Exit 4: " FontFamily="Segoe UI Emoji"/>
+                            <CheckBox Grid.Row="9" Grid.Column="3" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10" IsChecked="{Binding ExitFour}"></CheckBox>
+
                         </Grid>
 
                         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1">
