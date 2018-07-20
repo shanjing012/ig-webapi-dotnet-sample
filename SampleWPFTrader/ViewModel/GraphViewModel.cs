@@ -466,7 +466,11 @@ namespace SampleWPFTrader.ViewModel
             SetFiveMinuteCommand.IsEnabled = false;
         }
 
-        //search for epic to view
+        /*==================================================================================
+                SearchEpic()
+                search for epic from IGLabs using the search query provided on UI
+                populate dropdownbox with the results.
+        ==================================================================================*/
         public async void SearchEpic()
         {
             //get search query
@@ -503,6 +507,11 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
+        /*==================================================================================
+                SelectEpic()
+                select epic from the dropdownbox
+                use this epic to initialize the chart and positions.
+        ==================================================================================*/
         public void SelectEpic()
         {
             try
@@ -524,7 +533,10 @@ namespace SampleWPFTrader.ViewModel
                     EntryTwo = false;
                     EntryThree = false;
                     EntryFour = false;
-
+                    ExitOne = false;
+                    ExitTwo = false;
+                    ExitThree = false;
+                    ExitFour = false;
                 }
                 else
                 {
@@ -537,19 +549,24 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //get the historic data of epic
-        //may need to set minute interval manually?
+        /*==================================================================================
+                GetHistoricChart()
+                - string selectedEpic
+                Uses selectedEpic to find the historic chart data from IGLabs
+        ==================================================================================*/
         private async void GetHistoricChart(string selectedEpic)
         {
             //ChartMarketHistoryData.Clear();
             GraphLabels.Clear();
             SeriesCollection[0].Values.Clear();
+            chartHigh = 1;
+            chartLow = 0;
 
             try
             {
                 if (LoggedIn && selectedEpic != "")
                 {
-                    var response = await igRestApiClient.priceSearchByNumV2(selectedEpic, minuteInterval, "49");
+                    var response = await igRestApiClient.priceSearchByNumV2(selectedEpic, minuteInterval, graphEntries.ToString());
 
                     if (response && response.Response != null && response.Response.prices.Count != 0)
                     {
@@ -585,7 +602,12 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //for ui
+        /*==================================================================================
+                OpenBuyPosition()
+                Method wrapper for OpenPosition
+                Open a BUY position and updates position data UI
+                Method called by UI to open a BUY position
+        ==================================================================================*/
         public void OpenBuyPosition()
         {
             OpenPosition("BUY", -1, -1);
@@ -593,7 +615,13 @@ namespace SampleWPFTrader.ViewModel
             GetPositions(selectedEpic);
         }
 
-        //for ui
+
+        /*==================================================================================
+                OpenSellPosition()
+                Method wrapper for OpenPosition
+                Open a SELL position and updates position data UI
+                Method called by UI to open a SELL position
+        ==================================================================================*/
         public void OpenSellPosition()
         {
             OpenPosition("SELL", -1, -1);
@@ -601,7 +629,13 @@ namespace SampleWPFTrader.ViewModel
             GetPositions(selectedEpic);
         }
 
-        //overwrite for algo use
+        /*==================================================================================
+                OpenBuyPosition() (Overwrite)
+                - decimal limit (limit distance (limit of earn))
+                - decimal stop (stop distance, must be above 2)
+                Method wrapper for OpenPosition
+                Open a BUY position and updates position data UI
+        ==================================================================================*/
         public void OpenBuyPosition(decimal limit, decimal stop)
         {
             OpenPosition("BUY", limit, stop);
@@ -609,7 +643,13 @@ namespace SampleWPFTrader.ViewModel
             GetPositions(selectedEpic);
         }
 
-        //overwrite for algo use
+        /*==================================================================================
+                OpenSellPosition() (Overwrite)
+                - decimal limit (limit distance (limit of earn))
+                - decimal stop (stop distance, must be above 2)
+                Method wrapper for OpenPosition
+                Open a SELL position and updates position data UI
+        ==================================================================================*/
         public void OpenSellPosition(decimal limit, decimal stop)
         {
             OpenPosition("SELL", limit, stop);
@@ -617,6 +657,14 @@ namespace SampleWPFTrader.ViewModel
             GetPositions(selectedEpic);
         }
 
+        /*==================================================================================
+                OpenPosition()
+                - string direction (direction "SELL" or "BUY")
+                - decimal limit (limit distance (limit of earn))
+                - decimal stop (stop distance, must be above 2)
+                open a position with the instrument epic
+                size is given by the UI
+        ==================================================================================*/
         public async void OpenPosition(string direction, decimal limit, decimal stop)
         {
             //get search query
@@ -668,6 +716,11 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
+        /*==================================================================================
+                ClosePosition()
+                - Collection<IgPublicApiData.OrderModel> ClosingOrders (collection of all positions to close.)
+                close all positions provided in the collection
+        ==================================================================================*/
         public async void ClosePosition(Collection<IgPublicApiData.OrderModel> ClosingOrders)
         {
             //get search query , sell first of the 
@@ -711,7 +764,10 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //only positive positions close
+        /*==================================================================================
+                ClosePositivePositions()
+                close all current POSITIVE positions in the positions data list
+        ==================================================================================*/
         public void ClosePositivePositions()
         {
             if (PositionData.Count != 0)
@@ -731,7 +787,10 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //close all positions
+        /*==================================================================================
+                CloseAllPositions()
+                close all current positions in the positions data list
+        ==================================================================================*/
         public void CloseAllPositions()
         {
             if (PositionData.Count != 0)
@@ -748,9 +807,13 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //get market details and set currency traded first. then ->
-        //get open position with the epic being the provided
-        //use clear position before this method.
+        /*==================================================================================
+                GetPositions()
+                - string epic (epic of instrument to get positions from)
+                get market details and set currency traded first. 
+                then get open position with the epic being the provided
+                ! use clear position before this method.
+        ==================================================================================*/
         private async void GetPositions(string epic)
         {
             //to do this subscribe to position and close position 
@@ -825,8 +888,11 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //subscribe to chart
-        //only 1 entry in chartEpics string[] parameter !!
+        /*==================================================================================
+                SubscribeToCharts()
+                - string[] chartEpics (chart epics should contain only 1 epic!!)
+                subscribe to IGLabs lightstreamer subscription
+        ==================================================================================*/
         private void SubscribeToCharts(string[] chartEpics)
         {
             try
@@ -857,7 +923,10 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //unsub chart
+        /*==================================================================================
+                UnsubscribeFromCharts()
+                unsub from IGLabs lightstreamer subscription
+        ==================================================================================*/
         private void UnsubscribeFromCharts()
         {
             if ((igStreamApiClient != null) && (_chart5MinuteSubscribedTableKey != null) && (_chartTickSubscribedTableKey != null) && (LoggedIn))
@@ -873,7 +942,10 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //update of candle tick data for position calculation of POINTS
+        /*==================================================================================
+                OnChartTickDataUpdate()
+                update position points from subscription api from IGlabs
+        ==================================================================================*/
         private void OnChartTickDataUpdate(object sender, UpdateArgs<ChartTickData> e)
         {
             var updateTick = e.UpdateData;
@@ -895,7 +967,11 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //update of candle chart data (5 MINUTES) (@keith)
+        /*==================================================================================
+                OnChartCandleData5MinuteUpdate()
+                update 5 minute chart data from the subscription api from IGlabs
+                Determine entry points here
+        ==================================================================================*/
         private void OnChartCandleData5MinuteUpdate(object sender, UpdateArgs<ChartCandelData> e)
         {
 
@@ -924,9 +1000,13 @@ namespace SampleWPFTrader.ViewModel
                             false //check for 1st
                         );
 
-                        //0.0005 down up = resistance
                         if (entry1) //if the 
                         {
+                            /*====================================================================
+                            Entry 1:
+                            last 20 minutes all upwards / downwards trend, open a position which follows that trend
+                            ====================================================================*/
+
                             ApplicationViewModel.getInstance().AddStatusMessage("-----------");
                             //if last 4 are green, follow open buy, if last 4 are negative, follow open sell
                             OhlcPoint pt1 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 2] as OhlcPoint;
@@ -961,6 +1041,12 @@ namespace SampleWPFTrader.ViewModel
                         }
                         if (entry2)
                         {
+                            /*====================================================================
+                            Entry 2:
+                            10 minutes downward, 5 minutes upward followed by a steep increase of 0.0003 points => Open a sell position
+                            10 minutes upward, 5 minutes downward followed by a steep decrease of 0.0003 points => Open a buy position
+                            ====================================================================*/
+
                             ApplicationViewModel.getInstance().AddStatusMessage("-----------");
                             //red red green
                             //calculate the trueness of the algo:
@@ -994,25 +1080,35 @@ namespace SampleWPFTrader.ViewModel
                         }
                         if (entry3)
                         {
+                            /*====================================================================
+                            Entry 3:
+                            15minutes of downward and 15minutes of upward trend => Open a sell position
+                            ====================================================================*/
+
                             ApplicationViewModel.getInstance().AddStatusMessage("-----------");
-                            double average = 0;
-                            OhlcPoint pt;
-                            //past 30 min average.
-                            for (int i = 1; i < 7; i++)
+
+                            OhlcPoint pt1 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 2] as OhlcPoint;
+                            OhlcPoint pt2 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 3] as OhlcPoint;
+                            OhlcPoint pt3 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 4] as OhlcPoint;
+                            OhlcPoint pt4 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 5] as OhlcPoint;
+                            OhlcPoint pt5 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 6] as OhlcPoint;
+                            OhlcPoint pt6 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 7] as OhlcPoint;
+
+                            if (currentPointGreen(pt1) && currentPointGreen(pt2) && currentPointGreen(pt3) && !currentPointGreen(pt4) && !currentPointGreen(pt5) && !currentPointGreen(pt6))
                             {
-                                pt = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - (i + 1)] as OhlcPoint;
-                                average += (pt.Close - pt.Open);
+                                ApplicationViewModel.getInstance().AddStatusMessage("3 negative, 3 positive, predict negative next");
+                                OpenSellPosition();
                             }
-                            average = average / 6;
-                            ApplicationViewModel.getInstance().AddStatusMessage("=>> >> >> average of past 6 bars = " + average.ToString("N6"));
-                            if (average >= 0.0005)
-                                ApplicationViewModel.getInstance().AddStatusMessage("More than 0.0005");
-                            else if (average <= -0.0005)
-                                ApplicationViewModel.getInstance().AddStatusMessage("less than -0.0005");
                             ApplicationViewModel.getInstance().AddStatusMessage("--ENTRY 3--");
                         }
                         if (entry4)
                         {
+                            /*====================================================================
+                            Entry 4:
+                            Steep increase of 0.0007 points => Open a buy position
+                            Steep decrease of 0.0007 points => Open a sell position
+                            ====================================================================*/
+
                             ApplicationViewModel.getInstance().AddStatusMessage("-----------");
                             OhlcPoint pt = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 2] as OhlcPoint;
                             if (pt.Close - pt.Open > 0.0007)
@@ -1029,34 +1125,15 @@ namespace SampleWPFTrader.ViewModel
                         }
                         if (exit1)
                         {
-                            ApplicationViewModel.getInstance().AddStatusMessage("-----------");
-
-                            OhlcPoint pt1 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 2] as OhlcPoint;
-                            OhlcPoint pt2 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 3] as OhlcPoint;
-                            OhlcPoint pt3 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 4] as OhlcPoint;
-                            OhlcPoint pt4 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 5] as OhlcPoint;
-                            OhlcPoint pt5 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 6] as OhlcPoint;
-                            OhlcPoint pt6 = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 7] as OhlcPoint;
-
-                            if (currentPointGreen(pt1) && currentPointGreen(pt2) && currentPointGreen(pt3) && !currentPointGreen(pt4) && !currentPointGreen(pt5) && !currentPointGreen(pt6))
-                            {
-                                ApplicationViewModel.getInstance().AddStatusMessage("3 negative, 3 positive, predict negative next");
-                                OpenSellPosition();
-                            }
-                            ApplicationViewModel.getInstance().AddStatusMessage("--ENTRY 5--");
                         }
                         if (exit2)
                         {
-                            //algo 6
                         }
                         if (exit3)
                         {
-                            //algo 7
-
                         }
                         if (exit4)
                         {
-                            //algo 8
                         }
 
                         PositionData.Clear();
@@ -1073,19 +1150,9 @@ namespace SampleWPFTrader.ViewModel
                             double.Parse(((candleUpdate.Bid.Low + candleUpdate.Offer.Low) / 2).ToString()),
                             double.Parse(((candleUpdate.Bid.Close + candleUpdate.Offer.Close) / 2).ToString()),
                             candleUpdate.UpdateTime.Value.ToLocalTime().ToString(strFormat)
-                        );
-
-                        
+                        );                        
                     }
                 }
-
-                //handle trading
-                //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
-
-                
-
             }
             catch (Exception ex)
             {
@@ -1093,9 +1160,18 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //to add to the chart series (display chart)
-        //bool first is for when it is the first entry, only used in get historic.
-        //only remove historic when more than graphEntries 
+        /*==================================================================================
+                addToSeries()
+                - double open
+                - double high
+                - double low
+                - double close
+                - string label (chart label)
+                - boolean first (Whether it is the first in the chart.)
+                add to the chart series (display chart)
+                bool first is for when it is the first entry, only used in get historic.
+                only remove historic when more than graphEntries 
+        ==================================================================================*/
         private void addToSeries(double open, double high, double low, double close, string label, bool first)
         {
             OhlcPoint graphPoint = new OhlcPoint(open, high, low, close);
@@ -1108,15 +1184,57 @@ namespace SampleWPFTrader.ViewModel
 
             while (SeriesCollection[0].Values.Count >= graphEntries)
             {
-                GraphLabels.RemoveAt(0);
-                SeriesCollection[0].Values.RemoveAt(0);
+                var toBeRemoved = SeriesCollection[0].Values[0] as OhlcPoint;
+                ApplicationViewModel.getInstance().AddStatusMessage(toBeRemoved.High + " " + toBeRemoved.Low + " tobermeoved");
+                ApplicationViewModel.getInstance().AddStatusMessage(chartHigh + " " + chartLow + " chartdata");
+
+                if (toBeRemoved.Low == chartLow)
+                {
+                    GraphLabels.RemoveAt(0);
+                    SeriesCollection[0].Values.RemoveAt(0);
+                    //find new low
+                    var newLow = chartHigh;
+                    foreach(OhlcPoint point in SeriesCollection[0].Values)
+                    {
+                        if (point.Low < newLow)
+                            newLow = point.Low;
+                    }
+                    ChartLow = newLow;
+                }
+                else if (toBeRemoved.High == chartHigh)
+                {
+                    GraphLabels.RemoveAt(0);
+                    SeriesCollection[0].Values.RemoveAt(0);
+                    //find new high
+                    var newHigh = chartLow;
+                    foreach (OhlcPoint point in SeriesCollection[0].Values)
+                    {
+                        if (point.High > newHigh)
+                            newHigh = point.High;
+                    }
+                    ChartHigh = newHigh;
+                }
+                else
+                {
+                    GraphLabels.RemoveAt(0);
+                    SeriesCollection[0].Values.RemoveAt(0);
+                }
             }
             GraphLabels.Add(label);
             SeriesCollection[0].Values.Add(graphPoint);
         }
 
-        //to update the first entry of the series (display chart)
-        //get the last of the ohlcpoint and change it.
+
+        /*==================================================================================
+                updateSeries()
+                - double open
+                - double high
+                - double low
+                - double close
+                - string label (chart label)
+                to update the first entry of the series (display chart)
+                get the last of the ohlcpoint and change it.
+        ==================================================================================*/
         private void updateSeries(double open, double high, double low, double close, string label)
         {
             OhlcPoint graphPoint = SeriesCollection[0].Values[SeriesCollection[0].Values.Count - 1] as OhlcPoint;
@@ -1140,7 +1258,10 @@ namespace SampleWPFTrader.ViewModel
                 graphPoint.Close = close;
         }
 
-        //set chart to one minute, get historic data
+        /*==================================================================================
+                SetOneMinuteChart()
+                change chart to populate 1 minute data with historic data
+        ==================================================================================*/
         private void SetOneMinuteChart()
         {
             minuteInterval = "MINUTE";
@@ -1166,7 +1287,10 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //set chart to five minute, get historic data
+        /*==================================================================================
+                SetFiveMinuteChart()
+                change chart to populate 5 minute data with historic data
+        ==================================================================================*/
         private void SetFiveMinuteChart()
         {
             minuteInterval = "MINUTE_5";
@@ -1192,7 +1316,12 @@ namespace SampleWPFTrader.ViewModel
             }
         }
 
-        //check if its green point
+        /*==================================================================================
+                currentPointGreen()
+                ! Returns true or false value (Boolean)
+                - OhlcPoint point (OhlcPoint in chart)
+                calculate whether OhlcPoint is green or red (upward or downward)
+        ==================================================================================*/
         private Boolean currentPointGreen(OhlcPoint point)
         {
             if (point.Close > point.Open)
